@@ -20,6 +20,8 @@ const saltedKey = SaltyKeys.generateSaltedKey(apiKey);
 console.log('Generated Salted Key:', saltedKey);
 ```
 
+It would be best to run this in the console, and not on the page you want to hide your key on.
+
 ### 2. Retrieve the Actual API Key
 
 To retrieve the original API key from the salted key:
