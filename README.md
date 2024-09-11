@@ -1,6 +1,6 @@
 # SaltyKeys.js
 
-A JavaScript library for obfuscating and verifying API keys on the client side. **SaltyKeys** provides methods to extract a CodePen Pen ID, generate a salted API key, and retrieve the original API key if the context is valid.
+A JavaScript library for obfuscating and verifying API keys on the client side while using CodePen. **SaltyKeys** provides methods to extract a CodePen Pen ID, generate a salted API key, and retrieve the original API key if the context is valid.
 
 ## Disclaimer
 
