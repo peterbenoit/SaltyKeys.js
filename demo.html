@@ -3,7 +3,52 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>SaltyKeys.js Demo</title>
+        <title>SaltyKeys.js Demo - Interactive API Key Obfuscation Testing</title>
+
+        <!-- SEO Meta Tags -->
+        <meta
+            name="description"
+            content="Test and explore SaltyKeys.js features in this interactive playground. Learn how to obfuscate and validate API keys in CodePen projects."
+        />
+        <meta
+            name="keywords"
+            content="SaltyKeys demo, API key obfuscation, CodePen security, JavaScript library, client-side demo, API key testing"
+        />
+        <meta name="author" content="Peter Benoit" />
+        <meta name="robots" content="index, follow" />
+
+        <!-- Open Graph / Social Media Meta Tags -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://peterbenoit.github.io/SaltyKeys.js/demo.html" />
+        <meta property="og:title" content="SaltyKeys.js Interactive Demo" />
+        <meta
+            property="og:description"
+            content="Test and explore the features of SaltyKeys.js in this interactive playground for API key obfuscation."
+        />
+        <meta property="og:image" content="icons/og-image.jpg" />
+
+        <!-- Twitter Meta Tags -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="SaltyKeys.js Interactive Demo" />
+        <meta
+            name="twitter:description"
+            content="Interactive playground for API key obfuscation with SaltyKeys.js"
+        />
+        <meta name="twitter:image" content="icons/og-image.jpg" />
+
+        <!-- Favicon and App Icons -->
+        <link rel="icon" type="image/x-icon" href="icons/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
+        <link rel="mask-icon" href="icons/safari-pinned-tab.svg" color="#3498db" />
+        <meta name="msapplication-TileColor" content="#2c3e50" />
+        <meta name="msapplication-TileImage" content="icons/mstile-150x150.png" />
+        <meta name="theme-color" content="#2c3e50" />
+
+        <!-- Canonical URL -->
+        <link rel="canonical" href="https://peterbenoit.github.io/SaltyKeys.js/demo.html" />
+
         <style>
             :root {
                 --primary-color: #3498db;
@@ -205,7 +250,7 @@
             }
 
             .back-home:hover {
-                background: var(--secondary-color);
+                background: var (--secondary-color);
             }
 
             @media (max-width: 768px) {
@@ -224,6 +269,13 @@
     <body>
         <header>
             <div class="container">
+                <img
+                    src="icons/salt.png"
+                    alt="SaltyKeys.js Logo"
+                    width="120"
+                    height="120"
+                    style="margin-bottom: 20px"
+                />
                 <h1>SaltyKeys.js Interactive Demo</h1>
                 <p>Test and explore the library's features in this interactive playground</p>
             </div>
@@ -388,6 +440,7 @@ if (originalKey) {
 
         <!-- Include SaltyKeys.js -->
         <script src="SaltyKeys.js"></script>
+        <script src="https://peterbenoit.com/js/badge.js" data-mode="tracker"></script>
 
         <script>
             // Mock functions to simulate different environments
