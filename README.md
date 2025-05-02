@@ -49,32 +49,23 @@ if (actualApiKey) {
 }
 ```
 
-## Deployment Guide
+## Installation Instructions
 
-### Prerequisites
-
--   Basic JavaScript knowledge
--   A text editor
--   Web browser supporting ES6 features (ES2022+ for private fields)
--   A web server or hosting platform for deployment
-
-### Installation Instructions
-
-#### CodePen (Original Design Context)
+### CodePen (Original Design Context)
 
 1. Create a new pen on [CodePen](https://codepen.io/)
 2. Copy the contents of `SaltyKeys.js` into a JavaScript file in your pen
 3. Reference the script in your pen's HTML
 
-#### Other Platforms
+### Other Platforms
 
-##### Direct Script Include
+#### Direct Script Include
 
 ```html
 <script src="path/to/SaltyKeys.js"></script>
 ```
 
-##### As ES6 Module (requires modification)
+#### As ES6 Module (requires modification)
 
 ```js
 // SaltyKeys.js (modified)
@@ -86,22 +77,15 @@ export default class SaltyKeys {
 import SaltyKeys from './path/to/SaltyKeys.js';
 ```
 
-##### NPM Package (requires additional setup)
+## Environment Setup Requirements
 
-1. Create a package.json file
-2. Set up the module entry point
-3. Publish to npm or use locally
-4. Install with: `npm install your-package-name`
-
-### Environment Setup Requirements
-
-#### CodePen-Specific Environment
+### CodePen-Specific Environment
 
 -   The library explicitly relies on CodePen's URL structure by default
 -   Requires a valid CodePen Pen ID to function
 -   Works in both the CodePen editor and embedded views
 
-#### Non-CodePen Environments
+### Non-CodePen Environments
 
 To use outside of CodePen, configure the library as follows:
 
@@ -224,27 +208,6 @@ SaltyKeys._safeDecode(string);
 ```
 
 Decodes a string with Unicode support.
-
-### Testing Requirements
-
-For testing SaltyKeys modifications:
-
-1. **Unit Testing**:
-
-    - Test the `getPenId()` function with various URL formats
-    - Validate key generation with different inputs including Unicode characters
-    - Verify key retrieval in valid and invalid contexts
-    - Test configuration options
-
-2. **Integration Testing**:
-
-    - Test in embedded iframes
-    - Verify behavior when canonical links are present/absent
-    - Test across different browsers
-
-3. **Mock Environment**:
-    - Create test fixtures simulating CodePen's URL structure
-    - Mock document and window objects for controlled testing
 
 ### Troubleshooting Guide
 

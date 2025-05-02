@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>SaltyKeys.js Demo</title>
+        <style>
+            :root {
+                --primary-color: #3498db;
+                --secondary-color: #2980b9;
+                --accent-color: #e74c3c;
+                --bg-light: #f8f9fa;
+                --bg-dark: #2c3e50;
+                --code-bg: #282c34;
+                --code-color: #abb2bf;
+                --text-color: #333;
+                --text-light: #6c757d;
+                --border-radius: 8px;
+                --box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, Roboto,
+                    sans-serif;
+                line-height: 1.6;
+                color: var(--text-color);
+                margin: 0;
+                padding: 0;
+                background-color: #fff;
+                scroll-behavior: smooth;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0 20px;
+            }
+
+            header {
+                background: var(--bg-dark);
+                color: white;
+                padding: 30px 0;
+                text-align: center;
+            }
+
+            header h1 {
+                margin: 0;
+                color: #fff;
+                font-size: 2.5em;
+                font-weight: 700;
+            }
+
+            header p {
+                margin: 15px 0 30px;
+                font-size: 1.1em;
+                opacity: 0.9;
+                max-width: 700px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            nav {
+                background-color: var(--primary-color);
+                padding: 10px 0;
+                text-align: center;
+            }
+
+            nav a {
+                color: white;
+                text-decoration: none;
+                margin: 0 15px;
+                font-weight: 500;
+                font-size: 1.1em;
+                transition: opacity 0.3s ease;
+            }
+
+            nav a:hover {
+                opacity: 0.8;
+            }
+
+            .demo-section {
+                background: var(--bg-light);
+                border-radius: var(--border-radius);
+                padding: 25px;
+                margin: 30px auto;
+                box-shadow: var(--box-shadow);
+                max-width: 900px;
+            }
+
+            h1,
+            h2,
+            h3 {
+                color: var(--bg-dark);
+            }
+
+            h2 {
+                margin-top: 0;
+                position: relative;
+                display: inline-block;
+                margin-bottom: 20px;
+            }
+
+            h2:after {
+                content: '';
+                position: absolute;
+                left: 0;
+                bottom: -5px;
+                width: 40px;
+                height: 4px;
+                background: var(--primary-color);
+            }
+
+            pre {
+                background: var(--code-bg);
+                color: var(--code-color);
+                padding: 15px;
+                border-radius: var(--border-radius);
+                overflow-x: auto;
+                font-family: 'Consolas', 'Courier New', monospace;
+            }
+
+            .output {
+                background: #eef2f7;
+                padding: 15px;
+                border-left: 4px solid var(--primary-color);
+                margin: 15px 0;
+                border-radius: 0 var(--border-radius) var(--border-radius) 0;
+            }
+
+            button {
+                background: var(--primary-color);
+                border: none;
+                color: white;
+                padding: 10px 15px;
+                border-radius: var(--border-radius);
+                cursor: pointer;
+                font-size: 14px;
+                transition: background 0.3s ease;
+            }
+
+            button:hover {
+                background: var(--secondary-color);
+            }
+
+            input[type='text'],
+            select {
+                padding: 8px 12px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 14px;
+                width: 250px;
+                margin-right: 10px;
+            }
+
+            .warning {
+                background: #feecec;
+                border-left: 4px solid var(--accent-color);
+                padding: 15px;
+                margin: 20px auto;
+                border-radius: 0 var(--border-radius) var (--border-radius) 0;
+                max-width: 900px;
+            }
+
+            .code-snippet {
+                margin: 20px 0;
+            }
+
+            #configStatus,
+            #keyStatus,
+            #decodeStatus {
+                min-height: 20px;
+            }
+
+            footer {
+                background: var(--code-bg);
+                color: white;
+                text-align: center;
+                padding: 20px 0;
+                margin-top: 40px;
+            }
+
+            footer a {
+                color: var(--primary-color);
+                text-decoration: none;
+            }
+
+            footer a:hover {
+                text-decoration: underline;
+            }
+
+            .back-home {
+                display: inline-block;
+                margin-top: 20px;
+                background: var(--primary-color);
+                color: white;
+                padding: 10px 20px;
+                border-radius: var(--border-radius);
+                text-decoration: none;
+                font-weight: 500;
+                transition: background 0.3s ease;
+            }
+
+            .back-home:hover {
+                background: var(--secondary-color);
+            }
+
+            @media (max-width: 768px) {
+                .demo-section {
+                    padding: 15px;
+                }
+
+                input[type='text'],
+                select {
+                    width: 100%;
+                    margin-bottom: 10px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <div class="container">
+                <h1>SaltyKeys.js Interactive Demo</h1>
+                <p>Test and explore the library's features in this interactive playground</p>
+            </div>
+        </header>
+
+        <nav>
+            <div class="container">
+                <a href="index.html">Home</a>
+                <a href="index.html#about">About</a>
+                <a href="index.html#usage">Usage</a>
+                <a href="https://github.com/peterbenoit/SaltyKeys.js">GitHub</a>
+            </div>
+        </nav>
+
+        <div class="container">
+            <div class="warning">
+                <strong>Important:</strong> SaltyKeys is <em>not</em> a security solution. It's an
+                educational tool to demonstrate context-binding and obfuscation techniques. For
+                production applications, always use server-side approaches for managing API keys.
+            </div>
+
+            <div class="demo-section">
+                <h2>1. Configuration</h2>
+                <p>Configure SaltyKeys with custom settings:</p>
+
+                <div class="code-snippet">
+                    <pre><code>// Default configuration
+SaltyKeys.config = {
+    urlPattern: /codepen\.io\/[^/]+\/(?:pen|debug|fullpage|fullembedgrid)\/([^?#]+)/,
+    cacheEnabled: true,
+    environment: 'codepen'
+};</code></pre>
+                </div>
+
+                <p>For this demo, we'll simulate a CodePen environment:</p>
+                <div>
+                    <input
+                        type="text"
+                        id="customUrl"
+                        value="https://codepen.io/peterbenoit/pen/XWbpNvY"
+                        placeholder="Custom URL pattern"
+                    />
+                    <button id="useCustomUrl">Use This URL</button>
+                </div>
+                <div>
+                    <input type="checkbox" id="cacheEnabled" checked />
+                    <label for="cacheEnabled">Enable Caching</label>
+                </div>
+                <button id="configure">Apply Configuration</button>
+                <div id="configStatus" class="output"></div>
+            </div>
+
+            <div class="demo-section">
+                <h2>2. Generate Salted Key</h2>
+                <p>Enter your API key to generate a salted version:</p>
+                <div>
+                    <input type="text" id="apiKey" placeholder="Enter your API key" />
+                    <button id="generateKey">Generate Salted Key</button>
+                </div>
+                <div id="keyStatus" class="output"></div>
+            </div>
+
+            <div class="demo-section">
+                <h2>3. Retrieve Original API Key</h2>
+                <p>Decode a salted key to get the original API key:</p>
+                <div>
+                    <input type="text" id="saltedKey" placeholder="Enter salted key" />
+                    <button id="retrieveKey">Retrieve Original Key</button>
+                </div>
+                <div id="decodeStatus" class="output"></div>
+            </div>
+
+            <div class="demo-section">
+                <h2>4. Test Source URL Changes</h2>
+                <p>Change the simulated URL to test key validation across contexts:</p>
+                <div>
+                    <input type="text" id="newUrl" placeholder="New URL (e.g., different pen ID)" />
+                    <button id="changeUrl">Change URL</button>
+                </div>
+                <div id="urlStatus" class="output"></div>
+            </div>
+
+            <div class="demo-section">
+                <h2>5. Advanced Features</h2>
+
+                <h3>5.1. Custom URL Pattern</h3>
+                <p>Configure a custom URL pattern for non-CodePen environments:</p>
+                <div>
+                    <input
+                        type="text"
+                        id="customUrlPattern"
+                        value="example\.com\/projects\/([^?#]+)"
+                        placeholder="Custom regex pattern"
+                    />
+                    <button id="setUrlPattern">Set Pattern</button>
+                </div>
+                <div>
+                    <input
+                        type="text"
+                        id="testCustomUrl"
+                        value="https://example.com/projects/project123"
+                        placeholder="URL to test pattern against"
+                    />
+                    <button id="testPattern">Test Pattern</button>
+                </div>
+                <div id="patternStatus" class="output"></div>
+
+                <h3>5.2. Key Metadata</h3>
+                <p>Extract metadata from a salted key:</p>
+                <div>
+                    <input type="text" id="metadataKey" placeholder="Enter a salted key" />
+                    <button id="extractMetadata">Extract Metadata</button>
+                </div>
+                <div id="metadataStatus" class="output"></div>
+
+                <h3>5.3. Environment Simulation</h3>
+                <p>Change the environment setting to affect key handling:</p>
+                <select id="environmentSelect">
+                    <option value="codepen">CodePen</option>
+                    <option value="local">Local Development</option>
+                    <option value="custom">Custom Environment</option>
+                </select>
+                <button id="setEnvironment">Apply</button>
+                <div id="environmentStatus" class="output"></div>
+            </div>
+
+            <div class="demo-section">
+                <h2>Example Usage Code</h2>
+                <pre><code>// Example usage of SaltyKeys.js
+const apiKey = 'my-secret-api-key-123';
+const saltedKey = SaltyKeys.generateSaltedKey(apiKey);
+console.log('Salted Key:', saltedKey);
+
+// Later, when you need the original API key:
+const originalKey = SaltyKeys.getApiKey(saltedKey);
+if (originalKey) {
+    // Use the original API key
+    console.log('Original Key:', originalKey);
+} else {
+    console.warn('Failed to retrieve the API key');
+}</code></pre>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0">
+                <a href="index.html" class="back-home">← Back to Home</a>
+            </div>
+        </div>
+
+        <footer>
+            <div class="container">
+                <p>
+                    Created by <a href="https://uiguy.dev">Peter Benoit</a> | Last Updated: May 2025
+                </p>
+                <p>
+                    <a href="https://github.com/peterbenoit/SaltyKeys.js">GitHub</a> |
+                    <a href="index.html">Home</a> |
+                    <a href="https://github.com/peterbenoit/SaltyKeys.js/issues">Report Issues</a>
+                </p>
+                <p><small>This library is for educational purposes only.</small></p>
+            </div>
+        </footer>
+
+        <!-- Include SaltyKeys.js -->
+        <script src="SaltyKeys.js"></script>
+
+        <script>
+            // Mock functions to simulate different environments
+            let mockLocation = window.location.href;
+
+            // Instead of redefining window.location, create a mock implementation
+            // that SaltyKeys.js will use
+            function mockWindowLocation(url) {
+                mockLocation = url;
+
+                // Override SaltyKeys to use our mockLocation instead of window.location.href
+                const originalGetPenId = SaltyKeys.getPenId;
+                SaltyKeys.getPenId = function () {
+                    // Create a temporary object with our mock URL
+                    const mockObj = { href: mockLocation };
+
+                    // Use the mock URL for pattern matching
+                    const CODEPEN_ID = this.config.urlPattern;
+                    let id = null;
+
+                    if (CODEPEN_ID.test(mockObj.href)) {
+                        id = CODEPEN_ID.exec(mockObj.href)[1];
+                    } else {
+                        const canonicalLink = document.querySelector('link[rel="canonical"]');
+                        if (canonicalLink) {
+                            const href = canonicalLink.getAttribute('href');
+                            if (CODEPEN_ID.test(href)) {
+                                id = CODEPEN_ID.exec(href)[1];
+                            }
+                        }
+                    }
+
+                    // Don't directly access the private field
+                    // Store the ID for caching without accessing private fields
+                    return id;
+                };
+
+                document.getElementById('urlStatus').textContent = `Location changed to: ${url}`;
+            }
+
+            // Restore original getPenId method
+            function restoreWindowLocation() {
+                if (SaltyKeys._originalGetPenId) {
+                    SaltyKeys.getPenId = SaltyKeys._originalGetPenId;
+                }
+            }
+
+            // Store original method when page loads
+            SaltyKeys._originalGetPenId = SaltyKeys.getPenId;
+
+            // Demo functionality
+            document.addEventListener('DOMContentLoaded', function () {
+                let generatedKey = '';
+
+                // Configuration demo
+                document.getElementById('configure').addEventListener('click', function () {
+                    const customUrl = document.getElementById('customUrl').value;
+                    const cacheEnabled = document.getElementById('cacheEnabled').checked;
+
+                    try {
+                        mockWindowLocation(customUrl);
+
+                        SaltyKeys.configure({
+                            cacheEnabled: cacheEnabled,
+                            environment: 'demo',
+                        });
+
+                        const status = document.getElementById('configStatus');
+                        status.textContent = `Configuration applied: URL = ${customUrl}, Cache = ${
+                            cacheEnabled ? 'Enabled' : 'Disabled'
+                        }`;
+
+                        // Try to extract the pen ID
+                        const penId = SaltyKeys.getPenId();
+                        if (penId) {
+                            status.textContent += `\nSuccessfully extracted Pen ID: ${penId}`;
+                        } else {
+                            status.textContent += `\nFailed to extract Pen ID from URL.`;
+                        }
+                    } catch (e) {
+                        document.getElementById('configStatus').textContent = `Error: ${e.message}`;
+                    }
+                });
+
+                // Use custom URL button
+                document.getElementById('useCustomUrl').addEventListener('click', function () {
+                    const customUrl = document.getElementById('customUrl').value;
+                    mockWindowLocation(customUrl);
+                    document.getElementById(
+                        'configStatus'
+                    ).textContent = `URL set to: ${customUrl}`;
+                });
+
+                // Generate key demo
+                document.getElementById('generateKey').addEventListener('click', function () {
+                    const apiKey = document.getElementById('apiKey').value;
+
+                    if (!apiKey) {
+                        document.getElementById('keyStatus').textContent =
+                            'Please enter an API key';
+                        return;
+                    }
+
+                    generatedKey = SaltyKeys.generateSaltedKey(apiKey);
+
+                    if (generatedKey) {
+                        document.getElementById(
+                            'keyStatus'
+                        ).textContent = `Salted Key: ${generatedKey}\n\nStoring this for decoding demo.`;
+                        // Populate both the saltedKey field for decoding and metadataKey field for metadata extraction
+                        document.getElementById('saltedKey').value = generatedKey;
+                        document.getElementById('metadataKey').value = generatedKey;
+                    } else {
+                        document.getElementById('keyStatus').textContent =
+                            'Failed to generate salted key.';
+                    }
+                });
+
+                // Retrieve key demo
+                document.getElementById('retrieveKey').addEventListener('click', function () {
+                    const saltedKey = document.getElementById('saltedKey').value;
+
+                    if (!saltedKey) {
+                        document.getElementById('decodeStatus').textContent =
+                            'Please enter a salted key';
+                        return;
+                    }
+
+                    const originalKey = SaltyKeys.getApiKey(saltedKey);
+
+                    if (originalKey) {
+                        document.getElementById(
+                            'decodeStatus'
+                        ).textContent = `Original API Key: ${originalKey}`;
+                    } else {
+                        document.getElementById('decodeStatus').textContent =
+                            'Failed to retrieve original key. Possible causes:\n- Invalid salted key\n- Different Pen ID (context) than when generated';
+                    }
+                });
+
+                // Change URL demo
+                document.getElementById('changeUrl').addEventListener('click', function () {
+                    const newUrl =
+                        document.getElementById('newUrl').value ||
+                        'https://codepen.io/user/pen/differentid';
+                    mockWindowLocation(newUrl);
+
+                    // Reset cached Pen ID by forcing reconfiguration
+                    SaltyKeys.configure({
+                        cacheEnabled: document.getElementById('cacheEnabled').checked,
+                    });
+
+                    document.getElementById(
+                        'urlStatus'
+                    ).textContent = `URL changed to: ${newUrl}\n\nCached Pen ID reset. Try retrieving a key generated with the previous URL.`;
+                });
+
+                // Initial setup - use a proper CodePen URL by default
+                mockWindowLocation('https://codepen.io/user/pen/abcdef');
+                document.getElementById('customUrl').value = 'https://codepen.io/user/pen/abcdef';
+
+                // Custom URL pattern demo
+                document.getElementById('setUrlPattern').addEventListener('click', function () {
+                    const patternString = document.getElementById('customUrlPattern').value;
+                    try {
+                        const newPattern = new RegExp(patternString);
+                        SaltyKeys.configure({
+                            urlPattern: newPattern,
+                        });
+                        document.getElementById(
+                            'patternStatus'
+                        ).textContent = `URL pattern updated to: ${newPattern}`;
+                    } catch (e) {
+                        document.getElementById(
+                            'patternStatus'
+                        ).textContent = `Error: Invalid regex pattern. ${e.message}`;
+                    }
+                });
+
+                document.getElementById('testPattern').addEventListener('click', function () {
+                    const testUrl = document.getElementById('testCustomUrl').value;
+                    mockWindowLocation(testUrl);
+
+                    try {
+                        const extractedId = SaltyKeys.getPenId();
+                        if (extractedId) {
+                            document.getElementById(
+                                'patternStatus'
+                            ).textContent = `Success! Extracted ID: ${extractedId} from URL: ${testUrl}`;
+                        } else {
+                            document.getElementById(
+                                'patternStatus'
+                            ).textContent = `Failed to extract ID from URL: ${testUrl}. Pattern doesn't match.`;
+                        }
+                    } catch (e) {
+                        document.getElementById(
+                            'patternStatus'
+                        ).textContent = `Error: ${e.message}`;
+                    }
+                });
+
+                // Extract key metadata demo
+                document.getElementById('extractMetadata').addEventListener('click', function () {
+                    const saltedKey = document.getElementById('metadataKey').value;
+
+                    if (!saltedKey) {
+                        document.getElementById('metadataStatus').textContent =
+                            'Please enter a salted key';
+                        return;
+                    }
+
+                    try {
+                        // This is a custom function to extract metadata from a salted key
+                        // Needs to follow the same decoding logic as SaltyKeys.getApiKey
+                        const reversedKey = saltedKey.split('').reverse().join('');
+                        const decodedKey = SaltyKeys._safeDecode(reversedKey);
+
+                        if (!decodedKey) {
+                            document.getElementById('metadataStatus').textContent =
+                                'Failed to decode key. Invalid format.';
+                            return;
+                        }
+
+                        const keyParts = decodedKey.split(':');
+                        if (keyParts.length < 4) {
+                            document.getElementById('metadataStatus').textContent =
+                                'Invalid key format: missing components.';
+                            return;
+                        }
+
+                        const [apiKey, penId, timestamp, nonce] = keyParts;
+                        const keyDate = new Date(parseInt(timestamp));
+                        const keyAge = Math.round((Date.now() - parseInt(timestamp)) / 1000 / 60);
+
+                        document.getElementById('metadataStatus').textContent = `Key Metadata:
+                             • Associated Pen ID: ${penId}
+                             • Creation Date: ${keyDate.toLocaleString()}
+                             • Key Age: ${keyAge} minutes
+                             • Nonce: ${nonce}`;
+
+                        // Also update the current URL to match the pen ID from the key
+                        // This allows for easier testing to see if the key will work
+                        document.getElementById(
+                            'customUrl'
+                        ).value = `https://codepen.io/user/pen/${penId}`;
+                    } catch (e) {
+                        document.getElementById(
+                            'metadataStatus'
+                        ).textContent = `Error extracting metadata: ${e.message}`;
+                    }
+                });
+
+                // Environment simulation demo
+                document.getElementById('setEnvironment').addEventListener('click', function () {
+                    const environment = document.getElementById('environmentSelect').value;
+
+                    SaltyKeys.configure({
+                        environment: environment,
+                    });
+
+                    document.getElementById(
+                        'environmentStatus'
+                    ).textContent = `Environment set to: ${environment}`;
+
+                    // Give additional information about each environment
+                    let additionalInfo = '';
+                    switch (environment) {
+                        case 'codepen':
+                            additionalInfo =
+                                'Keys will only work on the original CodePen where they were created.';
+                            break;
+                        case 'local':
+                            additionalInfo =
+                                'Keys will work on localhost regardless of the URL path.';
+                            break;
+                        case 'custom':
+                            additionalInfo =
+                                'Keys will work based on the custom URL pattern you define.';
+                            break;
+                    }
+
+                    document.getElementById(
+                        'environmentStatus'
+                    ).textContent += `\n\n${additionalInfo}`;
+                });
+            });
+
+            // Clean up when the page unloads
+            window.addEventListener('beforeunload', function () {
+                restoreWindowLocation();
+            });
+        </script>
+    </body>
+</html>

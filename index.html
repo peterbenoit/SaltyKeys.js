@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>SaltyKeys.js - Client-Side API Key Obfuscation for CodePen</title>
+        <style>
+            :root {
+                --primary-color: #3498db;
+                --secondary-color: #2980b9;
+                --accent-color: #e74c3c;
+                --bg-light: #f8f9fa;
+                --bg-dark: #2c3e50;
+                --code-bg: #282c34;
+                --code-color: #abb2bf;
+                --text-color: #333;
+                --text-light: #6c757d;
+                --border-radius: 8px;
+                --box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, Roboto,
+                    sans-serif;
+                line-height: 1.6;
+                color: var(--text-color);
+                margin: 0;
+                padding: 0;
+                background-color: #fff;
+                scroll-behavior: smooth;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0 20px;
+            }
+
+            header {
+                background: var(--bg-dark);
+                color: white;
+                padding: 60px 0;
+                text-align: center;
+            }
+
+            header h1 {
+                margin: 0;
+                font-size: 3em;
+                font-weight: 700;
+            }
+
+            header p {
+                margin: 15px 0 30px;
+                font-size: 1.2em;
+                opacity: 0.9;
+                max-width: 700px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            nav {
+                background-color: var(--primary-color);
+                padding: 10px 0;
+                text-align: center;
+            }
+
+            nav a {
+                color: white;
+                text-decoration: none;
+                margin: 0 15px;
+                font-weight: 500;
+                font-size: 1.1em;
+                transition: opacity 0.3s ease;
+            }
+
+            nav a:hover {
+                opacity: 0.8;
+            }
+
+            .buttons {
+                margin-top: 30px;
+            }
+
+            .btn {
+                display: inline-block;
+                background: var(--primary-color);
+                color: white;
+                padding: 12px 30px;
+                margin: 10px;
+                border-radius: var(--border-radius);
+                text-decoration: none;
+                font-weight: 600;
+                transition: background 0.3s ease;
+            }
+
+            .btn:hover {
+                background: var(--secondary-color);
+            }
+
+            .btn-outline {
+                background: transparent;
+                border: 2px solid white;
+            }
+
+            .btn-outline:hover {
+                background: rgba(255, 255, 255, 0.1);
+            }
+
+            section {
+                padding-bottom: 20px;
+            }
+
+            h2 {
+                margin-top: 0;
+                color: var(--bg-dark);
+                position: relative;
+                display: inline-block;
+                margin-bottom: 20px;
+            }
+
+            .cta h2 {
+                color: white;
+            }
+
+            h2:after {
+                content: '';
+                position: absolute;
+                left: 0;
+                bottom: -5px;
+                width: 40px;
+                height: 4px;
+                background: var(--primary-color);
+            }
+
+            .feature-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 30px;
+                margin-top: 40px;
+            }
+
+            .feature-card {
+                background: var(--bg-light);
+                border-radius: var(--border-radius);
+                padding: 30px;
+                box-shadow: var(--box-shadow);
+                transition: transform 0.3s ease;
+            }
+
+            .feature-card:hover {
+                transform: translateY(-5px);
+            }
+
+            .feature-card h3 {
+                margin-top: 0;
+                color: var(--secondary-color);
+            }
+
+            code,
+            pre {
+                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            }
+
+            pre {
+                background: var(--code-bg);
+                color: var(--code-color);
+                padding: 20px;
+                border-radius: var(--border-radius);
+                overflow-x: auto;
+                margin: 20px 0;
+            }
+
+            .warning {
+                background: #feecec;
+                border-left: 4px solid var(--accent-color);
+                padding: 15px;
+                margin: 20px auto;
+                border-radius: 0 var(--border-radius) var (--border-radius) 0;
+                max-width: 900px;
+            }
+
+            .steps {
+                counter-reset: step;
+                padding-left: 0;
+                margin-top: 30px;
+            }
+
+            .step {
+                list-style-type: none;
+                position: relative;
+                padding-left: 60px;
+                margin-bottom: 30px;
+            }
+
+            .step:before {
+                content: counter(step);
+                counter-increment: step;
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 40px;
+                height: 40px;
+                background: var(--primary-color);
+                border-radius: 50%;
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+            }
+
+            .cta {
+                background: var(--bg-dark);
+                color: white;
+                text-align: center;
+                padding-top: 20px;
+            }
+
+            footer {
+                background: var(--code-bg);
+                color: white;
+                text-align: center;
+                padding: 30px 0;
+            }
+
+            footer a {
+                color: var(--primary-color);
+                text-decoration: none;
+            }
+
+            footer a:hover {
+                text-decoration: underline;
+            }
+
+            .demo-link {
+                display: block;
+                margin-top: 20px;
+                text-decoration: none;
+                color: var(--primary-color);
+                font-weight: bold;
+            }
+
+            .auth-diagram {
+                max-width: 100%;
+                margin: 30px 0;
+                padding: 20px;
+                background: var(--bg-light);
+                border-radius: var(--border-radius);
+                font-family: monospace;
+                white-space: pre;
+                overflow: auto;
+            }
+
+            @media (max-width: 768px) {
+                header {
+                    padding: 40px 0;
+                }
+
+                header h1 {
+                    font-size: 2em;
+                }
+
+                .feature-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <div class="container">
+                <h1>SaltyKeys.js</h1>
+                <p>
+                    A simple JavaScript library for obfuscating <em>non-sensitive</em> API keys in
+                    client-side CodePen projects
+                </p>
+                <div class="buttons">
+                    <a href="https://github.com/peterbenoit/SaltyKeys.js" class="btn"
+                        >GitHub Repo</a
+                    >
+                    <a href="demo.html" class="btn">View Demo</a>
+                    <a href="#usage" class="btn btn-outline">Get Started</a>
+                </div>
+            </div>
+        </header>
+
+        <nav>
+            <div class="container">
+                <a href="demo.html">Demo</a>
+                <a href="index.html#about">About</a>
+                <a href="index.html#usage">Usage</a>
+                <a href="https://github.com/peterbenoit/SaltyKeys.js">GitHub</a>
+            </div>
+        </nav>
+
+        <section id="about">
+            <div class="container">
+                <div class="warning">
+                    <strong>Important:</strong> SaltyKeys is <em>not</em> a security solution. It's
+                    an educational tool to demonstrate context-binding and obfuscation techniques.
+                    For production applications, always use server-side approaches for managing API
+                    keys.
+                </div>
+                <h2>What is SaltyKeys.js?</h2>
+                <p>
+                    SaltyKeys.js is a specialized JavaScript library designed to help developers
+                    working with CodePen projects that need to use non-sensitive API keys. It
+                    provides a client-side approach to obfuscating and verifying API keys, binding
+                    them to a specific CodePen context to help prevent casual extraction.
+                </p>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>Context-Aware</h3>
+                        <p>
+                            Keys are bound to specific CodePen IDs, making them usable only in the
+                            originating environment. This helps prevent simple copy-paste extraction
+                            of your keys.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3>Multi-Level Obfuscation</h3>
+                        <p>
+                            Uses a combination of encoding techniques, timestamps, and random nonces
+                            to obscure API keys beyond simple base64 encoding.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3>Configurable</h3>
+                        <p>
+                            Can be configured for different environments beyond CodePen with custom
+                            URL patterns and environment settings.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="why" class="alt-bg">
+            <div class="container">
+                <h2>Why SaltyKeys?</h2>
+                <p>
+                    When developing on CodePen or similar platforms, you might need to use API keys
+                    for external services. Exposing these keys directly in client-side code makes
+                    them easily accessible to anyone viewing your pen. SaltyKeys helps address this
+                    challenge by:
+                </p>
+
+                <ul>
+                    <li>Adding a layer of obfuscation beyond simple encoding</li>
+                    <li>Making keys context-dependent so they don't work when copied elsewhere</li>
+                    <li>Adding metadata like timestamps and nonces for extra complexity</li>
+                    <li>Providing a simple API for generating and retrieving keys</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="usage">
+            <div class="container">
+                <h2>How To Use</h2>
+                <ol class="steps">
+                    <li class="step">
+                        <h3>Include the Library</h3>
+                        <p>Add SaltyKeys.js to your project:</p>
+                        <pre><code>&lt;script src="SaltyKeys.js"&gt;&lt;/script&gt;</code></pre>
+                    </li>
+
+                    <li class="step">
+                        <h3>Configure (Optional)</h3>
+                        <p>Configure the library with your preferred settings:</p>
+                        <pre><code>SaltyKeys.configure({
+    urlPattern: /codepen\.io\/[^/]+\/(?:pen|debug|fullpage|fullembedgrid)\/([^?#]+)/,
+    cacheEnabled: true,
+    environment: 'codepen'
+});</code></pre>
+                    </li>
+
+                    <li class="step">
+                        <h3>Generate a Salted Key</h3>
+                        <p>In the console or a separate script, generate your salted key:</p>
+                        <pre><code>const apiKey = 'my-api-key-123'; // Your actual API key
+const saltedKey = SaltyKeys.generateSaltedKey(apiKey);
+console.log('Your salted key:', saltedKey);</code></pre>
+                    </li>
+
+                    <li class="step">
+                        <h3>Store the Salted Key</h3>
+                        <p>
+                            Use the salted key in your CodePen project instead of the raw API key:
+                        </p>
+                        <pre><code>// In your main script
+const saltedKey = 'your-salted-key-from-console';
+const actualApiKey = SaltyKeys.getApiKey(saltedKey);
+
+if (actualApiKey) {
+    // Use the API key with your service
+    initializeApiService(actualApiKey);
+} else {
+    console.error('Failed to retrieve API key');
+}</code></pre>
+                    </li>
+                </ol>
+
+                <a href="demo.html" class="demo-link">Try the Interactive Demo →</a>
+            </div>
+        </section>
+
+        <section id="when" class="alt-bg">
+            <div class="container">
+                <h2>When To Use</h2>
+                <p>SaltyKeys is appropriate for:</p>
+                <ul>
+                    <li>CodePen demonstrations and experiments</li>
+                    <li>Educational projects about API usage</li>
+                    <li>Quick prototypes where API key security is not critical</li>
+                    <li>Learning about client-side obfuscation techniques</li>
+                </ul>
+
+                <p>SaltyKeys is <strong>not</strong> appropriate for:</p>
+                <ul>
+                    <li>Production applications</li>
+                    <li>Projects handling sensitive or paid API services</li>
+                    <li>Applications where security is a concern</li>
+                    <li>As a replacement for proper server-side API key management</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="bestpractices">
+            <div class="container">
+                <h2>Best Practices for API Key Security</h2>
+                <p>For proper API key security in production applications:</p>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>Use Server-Side Proxies</h3>
+                        <p>
+                            Create a server endpoint that makes API calls on behalf of your
+                            client-side code.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3>Environment Variables</h3>
+                        <p>
+                            Store API keys in environment variables on your server, never in
+                            client-side code.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3>Implement Rate Limiting</h3>
+                        <p>Prevent abuse by implementing rate limits on your API endpoints.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3>Use API Key Rotation</h3>
+                        <p>Regularly rotate your API keys to limit the impact of any exposure.</p>
+                    </div>
+                </div>
+
+                <div class="auth-diagram">
+                    <pre><code>┌─────────────┐      ┌─────────────┐      ┌───────────────┐
+│             │      │             │      │               │
+│  Client     │──────│  API Proxy  │──────│  External API │
+│  Browser    │      │  Server     │      │  Service      │
+│             │      │             │      │               │
+└─────────────┘      └─────────────┘      └───────────────┘
+     No keys           Secure key
+                      management</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta">
+            <div class="container">
+                <h2>Ready to Try SaltyKeys.js?</h2>
+                <p>
+                    Explore the interactive demo or check out the GitHub repository for more
+                    information.
+                </p>
+                <div class="buttons">
+                    <a href="demo.html" class="btn">Try the Demo</a>
+                    <a href="https://github.com/peterbenoit/SaltyKeys.js" class="btn btn-outline"
+                        >View on GitHub</a
+                    >
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <div class="container">
+                <p>
+                    Created by <a href="https://uiguy.dev">Peter Benoit</a> | Last Updated: May 2025
+                </p>
+                <p>
+                    <a href="https://github.com/peterbenoit/SaltyKeys.js">GitHub</a> |
+                    <a href="demo.html">Demo</a> |
+                    <a href="https://github.com/peterbenoit/SaltyKeys.js/issues">Report Issues</a>
+                </p>
+                <p><small>This library is for educational purposes only.</small></p>
+            </div>
+        </footer>
+
+        <!-- Include SaltyKeys.js -->
+        <script src="SaltyKeys.js"></script>
+        <script src="https://peterbenoit.com/js/badge.js" data-mode="tracker"></script>
+    </body>
+</html>
