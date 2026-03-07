@@ -1,0 +1,87 @@
+---
+title: Installation
+description: How to install and set up SaltyKeys.js in your project.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+SaltyKeys.js can be used in several different ways depending on your project setup.
+
+## CodePen (Recommended for Original Use Case)
+
+SaltyKeys.js was designed for CodePen and works out-of-the-box in that environment.
+
+### Steps:
+
+1. Create a new pen on [CodePen](https://codepen.io/)
+2. Copy the contents of [`SaltyKeys.js`](https://github.com/peterbenoit/SaltyKeys.js/blob/main/SaltyKeys.js) into your pen's JavaScript panel
+3. Start using the library (see [Quick Start Guide](/getting-started/quick-start/))
+
+### From CDN (jsDelivr):
+
+Add this script tag to your CodePen's HTML panel:
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/peterbenoit/SaltyKeys.js@latest/SaltyKeys.js"></script>
+```
+
+Or pin to a specific version:
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/peterbenoit/SaltyKeys.js@v1.0.0/SaltyKeys.js"></script>
+```
+
+## Direct Script Include
+
+For use in regular HTML files:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Project</title>
+</head>
+<body>
+  <!-- Your content -->
+
+  <script src="path/to/SaltyKeys.js"></script>
+  <script>
+    // SaltyKeys is now available
+    const saltedKey = SaltyKeys.generateSaltedKey('your-api-key');
+  </script>
+</body>
+</html>
+```
+
+## ES6 Module
+
+SaltyKeys.js can be modified to work as an ES6 module.
+
+### Modify the library:
+
+```js
+// At the end of SaltyKeys.js, add:
+export default SaltyKeys;
+```
+
+### Import and use:
+
+```js
+import SaltyKeys from './path/to/SaltyKeys.js';
+
+const saltedKey = SaltyKeys.generateSaltedKey('your-api-key');
+```
+
+## npm Package (Future)
+
+An npm package is planned for future releases. Check [the GitHub repository](https://github.com/peterbenoit/SaltyKeys.js) for updates.
+
+## Verification
+
+After installation, verify that SaltyKeys is loaded correctly:
+
+```js
+console.log(typeof SaltyKeys); // Should output: 'object'
+```
+
+If you see `'object'`, you're ready to go! Head to the [Quick Start Guide](/getting-started/quick-start/) to learn how to use it.

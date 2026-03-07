@@ -1,0 +1,176 @@
+---
+title: Configuration
+description: Learn how to configure SaltyKeys.js for your environment.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+SaltyKeys.js can be configured to work in different environments beyond CodePen. Configuration is optional; the library works out-of-the-box for CodePen projects.
+
+## Default Configuration
+
+By default, SaltyKeys.js is configured for CodePen:
+
+```js
+{
+  urlPattern: /codepen\.io\/.*\/pen\/([^?#]+)/,
+  cacheEnabled: true,
+  environment: 'codepen'
+}
+```
+
+## Customizing Configuration
+
+Use the `configure()` method to customize SaltyKeys for your needs:
+
+```js
+SaltyKeys.configure({
+  urlPattern: /your-site\.com\/project\/([^?#]+)/,
+  cacheEnabled: true,
+  environment: 'custom'
+});
+```
+
+## Configuration Options
+
+### `urlPattern`
+
+**Type**: `RegExp`
+**Default**: `/codepen\.io\/.*\/pen\/([^?#]+)/`
+
+A regular expression pattern used to extract an ID from the current URL. The pattern must include a **capture group** `()` that captures the unique identifier.
+
+#### Examples:
+
+**JSFiddle:**
+```js
+SaltyKeys.configure({
+  urlPattern: /jsfiddle\.net\/.*\/([^/]+)/,
+  environment: 'jsfiddle'
+});
+```
+
+**Custom domain with project IDs:**
+```js
+SaltyKeys.configure({
+  urlPattern: /mysite\.com\/demos\/([^?#]+)/,
+  environment: 'custom'
+});
+```
+
+**Path-based IDs:**
+```js
+SaltyKeys.configure({
+  urlPattern: /\/projects\/([a-z0-9-]+)/,
+  environment: 'custom'
+});
+```
+
+<Aside type="tip">
+Test your regex pattern with online tools like [regex101.com](https://regex101.com/) before implementing it. Make sure the capture group captures only the ID you need.
+</Aside>
+
+### `cacheEnabled`
+
+**Type**: `Boolean`
+**Default**: `true`
+
+When enabled, SaltyKeys caches the extracted ID to avoid repeated URL parsing. This improves performance if you call `getApiKey()` multiple times.
+
+**Disable caching** if the ID might change during the page lifecycle (uncommon):
+
+```js
+SaltyKeys.configure({
+  cacheEnabled: false
+});
+```
+
+### `environment`
+
+**Type**: `String`
+**Default**: `'codepen'`
+
+A string identifier for your environment. This is used internally for logging and debugging. It doesn't affect functionality but helps identify which configuration is active.
+
+```js
+SaltyKeys.configure({
+  environment: 'production-demo'
+});
+```
+
+## Advanced: Overriding ID Extraction
+
+For complete control over how IDs are extracted, you can override the `getPenId()` method directly:
+
+```js
+SaltyKeys.getPenId = function() {
+  // Your custom logic to extract an ID
+  // Example: read from a meta tag
+  const metaTag = document.querySelector('meta[name="project-id"]');
+  return metaTag ? metaTag.getAttribute('content') : null;
+};
+```
+
+<Aside type="caution">
+If you override `getPenId()`, make sure it returns a **consistent, unique identifier** for the page. The security of the obfuscation depends on this ID being unique to each project.
+</Aside>
+
+### Example: Meta Tag ID
+
+```html
+<meta name="demo-id" content="unique-demo-123">
+```
+
+```js
+SaltyKeys.getPenId = function() {
+  const meta = document.querySelector('meta[name="demo-id"]');
+  return meta ? meta.getAttribute('content') : null;
+};
+```
+
+### Example: Query Parameter ID
+
+```js
+SaltyKeys.getPenId = function() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('projectId');
+};
+```
+
+## Configuration Validation
+
+After configuring, verify that ID extraction works:
+
+```js
+SaltyKeys.configure({
+  urlPattern: /your-pattern-here/,
+  environment: 'custom'
+});
+
+const id = SaltyKeys.getPenId();
+console.log('Extracted ID:', id);
+// Should output your expected ID, not null
+```
+
+If `getPenId()` returns `null`, check:
+- Your regex pattern has a capture group `()`
+- The pattern matches your current URL
+- The captured group contains the ID you expect
+
+## Multiple Configurations
+
+You can reconfigure SaltyKeys at any time by calling `configure()` again. The new configuration replaces the previous one:
+
+```js
+// Initial config
+SaltyKeys.configure({ environment: 'dev' });
+
+// Later, change it
+SaltyKeys.configure({ environment: 'staging' });
+```
+
+## Next Steps
+
+- Learn how to [generate salted keys](/usage/generating-keys/)
+- Understand [environment setup requirements](/usage/environment-setup/)
+- See [configuration examples](/api/configuration/) in the API reference

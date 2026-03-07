@@ -1,0 +1,348 @@
+---
+title: Browser Compatibility
+description: Browser requirements and compatibility information for SaltyKeys.js.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+SaltyKeys.js requires modern browser features and will not work in older browsers or Internet Explorer.
+
+## Minimum Browser Versions
+
+| Browser | Minimum Version | Released |
+|---------|----------------|----------|
+| **Chrome** | 92 | July 2021 |
+| **Firefox** | 90 | July 2021 |
+| **Safari** | 15 | September 2021 |
+| **Edge** | 92 | July 2021 |
+| **Internet Explorer** | ❌ Not supported | - |
+
+<Aside type="note">
+These version requirements are based on ES2022 private class fields support, which is the most recent feature used by SaltyKeys.
+</Aside>
+
+## Required Browser Features
+
+### ES6+ Features (2015-2017)
+
+✅ **Classes**
+```js
+class SaltyKeys { /* ... */ }
+```
+
+✅ **Arrow Functions**
+```js
+const func = () => { /* ... */ };
+```
+
+✅ **Template Literals**
+```js
+const str = `Hello ${name}`;
+```
+
+✅ **Const/Let**
+```js
+const value = 'immutable';
+let variable = 'mutable';
+```
+
+✅ **Default Parameters**
+```js
+function example(param = 'default') { /* ... */ }
+```
+
+### ES2022 Features
+
+✅ **Private Class Fields**
+```js
+class SaltyKeys {
+  #privateField = 'value';
+}
+```
+
+This is the **most restrictive requirement**. Private class fields (`#field`) are only available in:
+- Chrome/Edge 74+ (full support in 92+)
+- Firefox 90+
+- Safari 14.5+ (full support in 15+)
+
+### Web APIs
+
+✅ **Base64 Encoding/Decoding**
+```js
+btoa('string');  // Encode
+atob('encoded'); // Decode
+```
+Supported in all modern browsers.
+
+✅ **Regular Expressions**
+```js
+/pattern/.test(string);
+string.match(/pattern/);
+```
+Universal support.
+
+✅ **URL APIs**
+```js
+window.location.href;
+new URLSearchParams(window.location.search);
+```
+Supported in all modern browsers.
+
+✅ **DOM Query Selectors**
+```js
+document.querySelector('meta[name="..."]');
+```
+Supported in all modern browsers.
+
+## Mobile Browser Support
+
+SaltyKeys works in mobile browsers meeting the version requirements:
+
+| Mobile Browser | Minimum Version |
+|---------------|----------------|
+| **Chrome Android** | 92+ |
+| **Safari iOS** | 15.0+ |
+| **Firefox Android** | 90+ |
+| **Samsung Internet** | 15.0+ |
+| **Opera Mobile** | 64+ |
+
+## Feature Detection
+
+You can detect if a browser supports SaltyKeys:
+
+```js
+function isSaltyKeysSupported() {
+  try {
+    // Test for private class fields
+    eval('class Test { #private }');
+
+    // Test for required APIs
+    if (typeof btoa === 'undefined' || typeof atob === 'undefined') {
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+if (isSaltyKeysSupported()) {
+  console.log('✓ SaltyKeys is supported');
+} else {
+  console.log('✗ Browser too old for SaltyKeys');
+}
+```
+
+### Graceful Degradation
+
+Provide a fallback for unsupported browsers:
+
+```html
+<script>
+function isBrowserSupported() {
+  try {
+    eval('class T { #p }');
+    return typeof btoa !== 'undefined';
+  } catch {
+    return false;
+  }
+}
+
+if (!isBrowserSupported()) {
+  document.body.innerHTML = `
+    <div style="padding: 20px; background: #fee; border: 2px solid #c00;">
+      <h2>Browser Not Supported</h2>
+      <p>This application requires a modern browser.</p>
+      <p>Please update to:</p>
+      <ul>
+        <li>Chrome 92+ or Edge 92+</li>
+        <li>Firefox 90+</li>
+        <li>Safari 15+</li>
+      </ul>
+    </div>
+  `;
+}
+</script>
+```
+
+## Browser Usage Statistics
+
+As of 2024, the vast majority of users have compatible browsers:
+
+- **~95%** of desktop users have compatible browsers
+- **~90%** of mobile users have compatible browsers
+- **~98%** of developers have compatible browsers
+
+Most incompatible browsers are:
+- Internet Explorer 11 (end-of-life: June 2022)
+- Very old mobile devices (4+ years old)
+- Enterprise systems with locked browser versions
+
+## CodePen Browser Requirements
+
+CodePen itself requires modern browsers, so SaltyKeys' requirements align well:
+
+| | SaltyKeys | CodePen |
+|---|-----------|---------|
+| Chrome | 92+ | Latest 2 versions |
+| Firefox | 90+ | Latest 2 versions |
+| Safari | 15+ | Latest 2 versions |
+| IE | ❌ | ❌ |
+
+If a browser can run CodePen, it can run SaltyKeys.
+
+## Known Browser-Specific Issues
+
+### Safari < 15
+
+Private class fields are partially supported in Safari 14.5-14.9 but have bugs. **Safari 15+** is required for stable operation.
+
+### Firefox < 90
+
+Private class fields not supported. Firefox 90 (July 2021) added full support.
+
+### Chrome < 74
+
+Private class fields not supported. Chrome 74 (April 2019) added basic support; Chrome 92 is recommended.
+
+### Internet Explorer
+
+❌ **No support whatsoever.** IE lacks:
+- Private class fields
+- Many ES6+ features
+- Modern JavaScript syntax
+
+<Aside type="caution">
+Internet Explorer is end-of-life and no longer receives security updates. Microsoft officially ended support in June 2022.
+</Aside>
+
+## Polyfills and Transpilation
+
+### Can SaltyKeys be polyfilled?
+
+**Partially, but not recommended.**
+
+- ✅ ES6 features can be transpiled with Babel
+- ❌ Private class fields require complex transforms
+- ❌ The transformed code would be significantly larger
+- ❌ Performance would be worse
+
+### Should you transpile SaltyKeys?
+
+**No.** If you need to support older browsers:
+
+1. **Use a different approach** (server-side keys)
+2. **Require modern browsers** for your demo/tutorial
+3. **Provide a fallback message** for old browsers
+
+The educational use case for SaltyKeys typically targets developers who already have modern browsers.
+
+## Testing Across Browsers
+
+### Manual Testing
+
+Test in these browsers as a minimum:
+
+- ✅ Chrome/Edge (Chromium)
+- ✅ Firefox
+- ✅ Safari (if on macOS/iOS)
+
+### Automated Testing
+
+Use services like:
+- **BrowserStack** — Test across many browsers/devices
+- **Sauce Labs** — Automated cross-browser testing
+- **LambdaTest** — Cloud-based browser testing
+
+### Test Script
+
+```js
+// test-compatibility.js
+console.log('Browser:', navigator.userAgent);
+
+try {
+  // Test private fields
+  eval('class Test { #private = 1; }');
+  console.log('✓ Private fields supported');
+} catch (e) {
+  console.error('✗ Private fields not supported');
+}
+
+try {
+  // Test SaltyKeys
+  const id = SaltyKeys.getPenId();
+  console.log('✓ SaltyKeys loaded');
+  console.log('  Pen ID:', id || 'null');
+
+  // Test encoding
+  const test = SaltyKeys._safeEncode('test');
+  const decoded = SaltyKeys._safeDecode(test);
+  console.log('✓ Encoding works:', decoded === 'test');
+
+} catch (e) {
+  console.error('✗ SaltyKeys error:', e.message);
+}
+```
+
+## Progressive Enhancement Strategy
+
+For production applications (using a server-side proxy), you can progressively enhance:
+
+```js
+// Check if SaltyKeys is available (modern browser)
+if (typeof SaltyKeys !== 'undefined' && isBrowserSupported()) {
+  // Enhanced experience with local features
+  initializeWithSaltyKeys();
+} else {
+  // Fallback experience
+  initializeWithFallback();
+}
+```
+
+## Future Browser Support
+
+SaltyKeys uses stable, widely-supported features. As browsers continue to evolve:
+
+- ✅ Current features will remain supported
+- ✅ Browser support will expand as older versions phase out
+- ✅ No compatibility-breaking changes planned
+
+## Checking Your Browser
+
+Want to check if your current browser supports SaltyKeys?
+
+```js
+// Run this in your browser console:
+(function() {
+  const checks = {
+    'Private fields': false,
+    'btoa/atob': typeof btoa !== 'undefined' && typeof atob !== 'undefined',
+    'Classes': false,
+    'Arrow functions': false
+  };
+
+  try { eval('class T { #p }'); checks['Private fields'] = true; } catch (e) {}
+  try { eval('class C {}'); checks['Classes'] = true; } catch (e) {}
+  try { eval('() => {}'); checks['Arrow functions'] = true; } catch (e) {}
+
+  console.table(checks);
+
+  const supported = Object.values(checks).every(v => v);
+  console.log(supported ? '✓ Your browser supports SaltyKeys!' : '✗ Browser not supported');
+})();
+```
+
+## Resources
+
+- [Can I Use: Private Class Fields](https://caniuse.com/mdn-javascript_classes_private_class_fields)
+- [MDN: Browser Compatibility Data](https://github.com/mdn/browser-compat-data)
+- [Chrome Platform Status](https://chromestatus.com/)
+- [Firefox Release Calendar](https://wiki.mozilla.org/Release_Management/Calendar)
+- [Safari Release Notes](https://developer.apple.com/documentation/safari-release-notes)
+
+## Next Steps
+
+- Review [Troubleshooting](/project/troubleshooting/) for browser-related issues
+- Learn about [deployment options](/project/deployment/)
+- Check [performance characteristics](/concepts/performance/)

@@ -1,0 +1,231 @@
+---
+title: How It Works
+description: Understand the technical details of how SaltyKeys.js obfuscates API keys.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+This page explains the technical mechanisms behind SaltyKeys.js and how it provides context-aware obfuscation.
+
+## Overview
+
+SaltyKeys.js uses a multi-layered obfuscation approach that ties API keys to a specific context (like a CodePen Pen ID). The core concept is simple:
+
+**An obfuscated key only works in the same context where it was created.**
+
+## The Obfuscation Process
+
+### 1. Context Extraction
+
+When you generate a salted key, SaltyKeys first extracts a unique identifier from the current context:
+
+```js
+const penId = SaltyKeys.getPenId();
+// Example: "abc123" from https://codepen.io/user/pen/abc123
+```
+
+This ID is extracted from:
+- The URL (using regex patterns)
+- Or a canonical link tag in the HTML
+- Or a custom method you provide
+
+### 2. Salting Components
+
+SaltyKeys combines multiple elements to create the salted key:
+
+```
+Salted Key = Base64(Timestamp) + Nonce + Base64(PenId) + Base64(Base64(API Key))
+              └─────┬─────┘      └┬┘    └────┬────┘    └──────────┬──────────┘
+                 Time-based      Random     Context         Your key
+                 variation       entropy    identifier      (double-encoded)
+```
+
+**Components:**
+
+- **Timestamp**: When the key was generated (adds uniqueness)
+- **Nonce**: Random string (prevents duplicate keys)
+- **Pen ID**: The context identifier (enables validation)
+- **API Key**: Your actual API key (double-encoded for obfuscation)
+
+### 3. Multi-Layer Encoding
+
+The encoding process uses multiple layers:
+
+```
+Original API Key
+    ↓
+Unicode-Safe Encoding (handles special characters)
+    ↓
+Base64 Encoding (first layer)
+    ↓
+Base64 Encoding (second layer)
+    ↓
+Combined with timestamp, nonce, and Pen ID
+    ↓
+Final Salted Key
+```
+
+This multi-layer approach makes casual reverse-engineering more difficult.
+
+## The Validation Process
+
+When you call `getApiKey()`, SaltyKeys performs these steps:
+
+### 1. Extract Current Context
+
+```js
+const currentPenId = SaltyKeys.getPenId();
+// Get the Pen ID from the current URL
+```
+
+### 2. Decode the Salted Key
+
+```js
+const parts = saltedKey.split('_');
+const timestamp = decodePart(parts[0]);
+const nonce = parts[1];
+const embeddedPenId = decodePart(parts[2]);
+const encodedKey = decodePart(parts[3]);
+```
+
+### 3. Validate Context
+
+```js
+if (currentPenId === embeddedPenId) {
+  // Context matches - decode the key
+  return decodeApiKey(encodedKey);
+} else {
+  // Context mismatch - return null
+  return null;
+}
+```
+
+### 4. Return Result
+
+- ✅ If validation passes: Return your original API key
+- ❌ If validation fails: Return `null`
+
+## Visual Flow
+
+Here's the complete flow from generation to retrieval:
+
+```
+GENERATION (in Pen abc123)
+─────────────────────────────
+1. Extract Pen ID: "abc123"
+2. Generate timestamp
+3. Generate random nonce
+4. Encode API key (multi-layer)
+5. Combine all parts
+6. Return salted key
+   → "MTc...==_xyz...==_YWJj...==_U2t..."
+
+
+USAGE (in same Pen abc123)
+─────────────────────────────
+1. Extract current Pen ID: "abc123"
+2. Decode salted key parts
+3. Compare Pen IDs: "abc123" === "abc123" ✓
+4. Decode and return API key
+   → "your-actual-api-key"
+
+
+ATTEMPTED COPY (in different Pen xyz789)
+─────────────────────────────
+1. Extract current Pen ID: "xyz789"
+2. Decode salted key parts
+3. Compare Pen IDs: "xyz789" !== "abc123" ✗
+4. Validation fails
+   → null
+```
+
+## Why This Works for Educational Use
+
+### The Protection Layer
+
+This approach provides protection against:
+
+✅ **Accidental exposure**: Keys aren't visible in plain text
+✅ **Casual copying**: Copied code won't work in other contexts
+✅ **Simple crawlers**: Automated scrapers can't easily extract keys
+✅ **Quick searches**: Keys don't appear in code searches
+
+### The Educational Trade-off
+
+This is obfuscation, not encryption. It doesn't protect against:
+
+❌ **Determined attackers**: Someone with JavaScript knowledge can reverse it
+❌ **Debugging tools**: Browser DevTools can intercept the decoded key
+❌ **Code inspection**: The decoding logic is visible in the library
+
+<Aside type="note">
+The goal isn't perfect security — it's adding a practical barrier for educational contexts where perfect security isn't feasible or necessary.
+</Aside>
+
+## Technical Implementation Details
+
+### Unicode Safety
+
+SaltyKeys uses Unicode-safe encoding to handle any characters in your API keys:
+
+```js
+_safeEncode(str) {
+  return btoa(unescape(encodeURIComponent(str)));
+}
+
+_safeDecode(str) {
+  return decodeURIComponent(escape(atob(str)));
+}
+```
+
+This ensures that API keys with special characters, emoji, or Unicode work correctly.
+
+### Caching Mechanism
+
+To improve performance, SaltyKeys caches the extracted Pen ID:
+
+```js
+// First call: extracts from URL
+const id1 = SaltyKeys.getPenId(); // Parses URL
+
+// Subsequent calls: uses cached value
+const id2 = SaltyKeys.getPenId(); // Returns cached ID
+```
+
+This means the URL regex only runs once per page load.
+
+### Error Handling
+
+SaltyKeys includes comprehensive error handling:
+
+```js
+try {
+  // Attempt extraction/decoding
+  const result = operation();
+  return result;
+} catch (error) {
+  console.warn('SaltyKeys operation failed:', error.message);
+  return null;
+}
+```
+
+If anything goes wrong, operations return `null` rather than throwing errors.
+
+## Comparison to Real Security
+
+For context, here's how SaltyKeys compares to real security approaches:
+
+| Aspect | SaltyKeys | Real Security |
+|--------|-----------|---------------|
+| **Key storage** | Client-side | Server-side |
+| **Encryption** | Obfuscation only | Strong encryption (AES, RSA) |
+| **Key visibility** | Visible when decoded | Never exposed to client |
+| **Attack resistance** | Minutes to reverse | Years to break |
+| **Use case** | Education, demos | Production apps |
+| **Complexity** | Simple, lightweight | Complex infrastructure |
+
+## Next Steps
+
+- Learn about [security considerations](/concepts/security/)
+- Understand [performance implications](/concepts/performance/)
+- See the [API implementation details](/api/core-methods/)

@@ -1,0 +1,411 @@
+---
+title: Troubleshooting
+description: Solutions to common problems with SaltyKeys.js.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+This guide covers common issues you might encounter when using SaltyKeys.js and how to resolve them.
+
+## Common Issues
+
+### `getPenId()` Returns `null`
+
+**Problem:** Cannot extract a Pen ID from the current context.
+
+**Possible Causes:**
+
+1. **Not in a CodePen environment**
+   ```js
+   // On a non-CodePen page without configuration
+   const id = SaltyKeys.getPenId();  // null
+   ```
+
+   **Solution:** [Configure SaltyKeys](/usage/configuration/) for your environment:
+   ```js
+   SaltyKeys.configure({
+     urlPattern: /your-site\.com\/demos\/([^?#]+)/,
+     environment: 'custom'
+   });
+   ```
+
+2. **URL pattern doesn't match**
+   ```js
+   // Your URL: https://mysite.com/project/abc123
+   // Pattern: /demos\/([^?#]+)/  ← doesn't match "project"
+   ```
+
+   **Solution:** Update the regex pattern:
+   ```js
+   SaltyKeys.configure({
+     urlPattern: /\/project\/([^?#]+)/  // Match "project"
+   });
+   ```
+
+3. **Missing capture group**
+   ```js
+   // ❌ Wrong - no capture group
+   urlPattern: /demos\/[^?#]+/
+
+   // ✅ Right - has capture group ()
+   urlPattern: /demos\/([^?#]+)/
+   ```
+
+   **Solution:** Ensure your regex includes parentheses `()`.
+
+4. **Multiple capture groups**
+   ```js
+   // ❌ Wrong - two capture groups
+   urlPattern: /(demos)\/([^?#]+)/
+
+   // ✅ Right - one capture group
+   urlPattern: /demos\/([^?#]+)/
+   ```
+
+   **Solution:** Use only one
+
+ capture group for the ID.
+
+**Debug Steps:**
+
+```js
+// 1. Check current URL
+console.log('URL:', window.location.href);
+
+// 2. Test your pattern
+const pattern = /your-pattern/;
+const match = window.location.href.match(pattern);
+console.log('Match:', match);
+console.log('Captured:', match ? match[1] : 'No match');
+
+// 3. Configure and test
+SaltyKeys.configure({ urlPattern: pattern });
+console.log('getPenId:', SaltyKeys.getPenId());
+```
+
+---
+
+### `getApiKey()` Returns `null`
+
+**Problem:** Cannot retrieve the API key from a salted key.
+
+**Possible Causes:**
+
+1. **Wrong context/Pen ID mismatch**
+
+   The most common issue. You generated the key in one pen but are using it in another.
+
+   ```js
+   // Generated in Pen: abc123
+   // But running in Pen: xyz789
+   const key = SaltyKeys.getApiKey(saltedKey);  // null
+   ```
+
+   **Solution:** Generate and use the key in the **same context**. If you copy code to a new pen, regenerate the salted key.
+
+2. **Invalid or corrupted salted key**
+
+   ```js
+   // Truncated key
+   const key = SaltyKeys.getApiKey('MTcyMD...');  // null
+
+   // Missing parts
+   const key = SaltyKeys.getApiKey('incomplete');  // null
+   ```
+
+   **Solution:** Ensure you copied the **entire** salted key. They can be quite long (100+ characters).
+
+3. **Context ID extraction failing**
+
+   If `getPenId()` returns `null`, `getApiKey()` will also return `null`.
+
+   **Solution:** Fix the `getPenId()` issue first (see above).
+
+4. **Decoding errors (rare)**
+
+   Base64 decoding failed due to invalid characters.
+
+   **Solution:** Regenerate the salted key.
+
+**Debug Steps:**
+
+```js
+// 1. Verify getPenId works
+const id = SaltyKeys.getPenId();
+console.log('Current Pen ID:', id);
+if (!id) {
+  console.error('⚠️ getPenId() is returning null');
+}
+
+// 2. Check salted key format
+const saltedKey = 'YOUR_SALTED_KEY_HERE';
+console.log('Salted key length:', saltedKey.length);
+console.log('Has parts:', saltedKey.includes('_'));
+
+// 3. Try to decode
+const apiKey = SaltyKeys.getApiKey(saltedKey);
+if (apiKey) {
+  console.log('✓ Successfully retrieved API key');
+} else {
+  console.error('✗ Failed to retrieve API key');
+}
+
+// 4. Regenerate for testing
+const testSalted = SaltyKeys.generateSaltedKey('test-key');
+const testRetrieved = SaltyKeys.getApiKey(testSalted);
+console.log('Test successful:', testRetrieved === 'test-key');
+```
+
+---
+
+### "Unable to extract Pen ID" Warning
+
+**Problem:** Console shows a warning about being unable to extract the Pen ID.
+
+**This warning appears when:**
+- You're not in a CodePen environment
+- The URL doesn't match the configured pattern
+- No canonical link tag exists
+
+**Solutions:**
+
+1. **For CodePen usage:** Make sure you're viewing the pen (not just the editor)
+2. **For other environments:** [Configure SaltyKeys](/usage/configuration/) with the correct pattern
+3. **For local development:** Use a custom `getPenId()` method
+
+---
+
+### Keys Work in Editor but Not in Embedded Pens
+
+**Problem:** Keys decrypt successfully in the CodePen editor but fail in embedded pens.
+
+**Cause:** Embedded pens may have different URLs.
+
+**debug:**
+
+```js
+// In both editor and embedded view:
+console.log('URL:', window.location.href);
+console.log('Pen ID:', SaltyKeys.getPenId());
+```
+
+**Solution:** If Pen IDs differ, you may need to:
+- Generate separate keys for embedded contexts
+- Or adjust the URL pattern to handle both
+
+---
+
+### `generateSaltedKey()` Returns Empty or Strange Values
+
+**Problem:** Generated salted keys look wrong or are empty.
+
+**Possible Causes:**
+
+1. **Empty API key input**
+   ```js
+   const salted = SaltyKeys.generateSaltedKey('');  // Warning logged
+   ```
+
+   **Solution:** Pass a non-empty string.
+
+2. **Non-string input**
+   ```js
+   const salted = SaltyKeys.generateSaltedKey(null);  // Error
+   const salted = SaltyKeys.generateSaltedKey(12345); // May cause issues
+   ```
+
+   **Solution:** Always pass a string:
+   ```js
+   const salted = SaltyKeys.generateSaltedKey(String(value));
+   ```
+
+3. **Context ID is null**
+
+   If `getPenId()` returns `null`, key generation may fail.
+
+   **Solution:** Fix `getPenId()` first.
+
+---
+
+### Unicode/Emoji in API Keys Causes Errors
+
+**Problem:** API keys with special characters fail to encode or decode.
+
+**Example:**
+```js
+const key = 'key-with-émojis-🔑';
+const salted = SaltyKeys.generateSaltedKey(key);  // Should work
+```
+
+**SaltyKeys handles Unicode safely.** If you encounter issues:
+
+1. **Verify you're using SaltyKeys encoding:**
+   ```js
+   // ❌ Don't use btoa() directly
+   btoa('🔑');  // Error
+
+   // ✅ SaltyKeys handles it
+   SaltyKeys.generateSaltedKey('🔑');  // Works
+   ```
+
+2. **Check for copy-paste issues:**
+
+   Sometimes copying from rich text introduces invisible characters.
+
+   **Solution:** Type the command directly in the console.
+
+---
+
+### Performance Issues
+
+**Problem:** SaltyKeys operations seem slow.
+
+**This is extremely rare.** Operations typically take &lt;1ms.
+
+**Potential causes:**
+
+1. **Calling `getApiKey()` repeatedly in loops**
+
+   ```js
+   // ❌ Bad - decodes 1000 times
+   for (let i = 0; i < 1000; i++) {
+     const key = SaltyKeys.getApiKey(SALTED_KEY);
+     doSomething(key);
+   }
+
+   // ✅ Good - decodes once
+   const key = SaltyKeys.getApiKey(SALTED_KEY);
+   for (let i = 0; i < 1000; i++) {
+     doSomething(key);
+   }
+   ```
+
+2. **Caching disabled unnecessarily**
+
+   **Solution:** Enable caching (it's on by default):
+   ```js
+   SaltyKeys.configure({ cacheEnabled: true });
+   ```
+
+**Measure performance:**
+
+```js
+console.time('getApiKey');
+const key = SaltyKeys.getApiKey(saltedKey);
+console.timeEnd('getApiKey');
+// Should be &lt;1ms
+```
+
+---
+
+### Library Not Loaded
+
+**Problem:** `SaltyKeys is not defined` error.
+
+**Causes:**
+
+1. **Script not included**
+
+   **Solution:**
+   ```html
+   <script src="path/to/SaltyKeys.js"></script>
+   ```
+
+2. **Script loads after your code**
+
+   ```html
+   <!-- ❌ Wrong order -->
+   <script>
+     SaltyKeys.generateSaltedKey('key');  // Error - not loaded yet
+   </script>
+   <script src="SaltyKeys.js"></script>
+
+   <!-- ✅ Right order -->
+   <script src="SaltyKeys.js"></script>
+   <script>
+     SaltyKeys.generateSaltedKey('key');  // Works
+   </script>
+   ```
+
+3. **CDN link is incorrect**
+
+   **Solution:** Use the correct CDN URL:
+   ```html
+   <script src="https://cdn.jsdelivr.net/gh/peterbenoit/SaltyKeys.js@latest/SaltyKeys.js"></script>
+   ```
+
+---
+
+### Browser Compatibility Errors
+
+**Problem:** Errors like "Private fields are not supported" or syntax errors.
+
+**Cause:** Using an out-of-date browser.
+
+**Solution:** SaltyKeys requires:
+- Chrome 92+
+- Firefox 90+
+- Safari 15+
+- Edge 92+
+
+See [Browser Compatibility](/project/browser-compatibility/) for details.
+
+---
+
+### Keys Stop Working After Deployment
+
+**Problem:** Keys worked in development but fail in production.
+
+**Causes:**
+
+1. **Different URL structure**
+
+   Dev: `localhost:3000/demo`
+   Prod: `example.com/demos/demo`
+
+   **Solution:** Regenerate keys in production context, or use a [meta tag approach](/usage/environment-setup/#meta-tag-ids).
+
+2. **Different domain**
+
+   If the Pen ID is based on the domain, changing domains breaks the keys.
+
+   **Solution:** Use a consistent ID source (meta tag, query param, etc.).
+
+---
+
+## Getting Help
+
+If you're still stuck:
+
+1. **Check the URL and Pen ID:**
+   ```js
+   console.log({
+     url: window.location.href,
+     penId: SaltyKeys.getPenId(),
+     configured: typeof SaltyKeys._config !== 'undefined'
+   });
+   ```
+
+2. **Test with a fresh key:**
+   ```js
+   const test = SaltyKeys.generateSaltedKey('test');
+   console.log('Test key:', test);
+   console.log('Retrieved:', SaltyKeys.getApiKey(test));
+   ```
+
+3. **Check browser console** for warnings or errors
+
+4. **Verify browser compatibility** — update if needed
+
+5. **File an issue** on [GitHub](https://github.com/peterbenoit/SaltyKeys.js/issues) with:
+   - Browser and version
+   - Full error message
+   - Minimal reproduction code
+
+---
+
+## Next Steps
+
+- Review [Configuration](/usage/configuration/) options
+- Check [Browser Compatibility](/project/browser-compatibility/)
+- Learn about [How It Works](/concepts/how-it-works/)

@@ -1,0 +1,213 @@
+---
+title: Retrieving API Keys
+description: Learn how to retrieve your original API keys from salted keys.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Once you've generated and embedded a salted key in your code, you can retrieve the original API key using the `getApiKey()` method.
+
+## Basic Usage
+
+```js
+const saltedKey = 'YOUR_SALTED_KEY_HERE';
+const apiKey = SaltyKeys.getApiKey(saltedKey);
+
+if (apiKey) {
+  // Use the API key in your requests
+  console.log('API key retrieved successfully');
+} else {
+  console.error('Failed to retrieve API key');
+}
+```
+
+## Return Values
+
+`getApiKey()` returns:
+- **Your original API key** (string) if successful
+- **`null`** if it fails to decode or validate the key
+
+<Aside type="tip">
+Always check if `getApiKey()` returns a truthy value before using the result. This prevents errors when the key can't be retrieved.
+</Aside>
+
+## Common Usage Patterns
+
+### Simple Validation
+
+```js
+const apiKey = SaltyKeys.getApiKey(saltedKey);
+
+if (!apiKey) {
+  console.error('API key could not be retrieved');
+  return;
+}
+
+// Continue with API calls
+fetch(`https://api.example.com/data?key=${apiKey}`)
+  .then(response => response.json())
+  .then(data => console.log(data));
+```
+
+### With Error Handling
+
+```js
+function getApiKeyOrFallback(saltedKey, fallbackMessage) {
+  const apiKey = SaltyKeys.getApiKey(saltedKey);
+
+  if (!apiKey) {
+    console.warn(fallbackMessage || 'Using demo mode');
+    return null;
+  }
+
+  return apiKey;
+}
+
+const key = getApiKeyOrFallback(saltedKey, 'Could not retrieve key, using demo data');
+```
+
+### Multiple Keys
+
+```js
+const config = {
+  weatherKey: SaltyKeys.getApiKey(WEATHER_KEY_SALTED),
+  mapsKey: SaltyKeys.getApiKey(MAPS_KEY_SALTED),
+  analyticsKey: SaltyKeys.getApiKey(ANALYTICS_KEY_SALTED)
+};
+
+// Validate all keys
+const allKeysValid = Object.values(config).every(key => key !== null);
+
+if (!allKeysValid) {
+  console.error('One or more API keys could not be retrieved');
+}
+```
+
+### Lazy Loading
+
+```js
+class ApiClient {
+  constructor(saltedKey) {
+    this._saltedKey = saltedKey;
+    this._apiKey = null;
+  }
+
+  getKey() {
+    if (!this._apiKey) {
+      this._apiKey = SaltyKeys.getApiKey(this._saltedKey);
+    }
+    return this._apiKey;
+  }
+
+  async fetchData(endpoint) {
+    const key = this.getKey();
+    if (!key) throw new Error('API key not available');
+
+    const response = await fetch(`${endpoint}?key=${key}`);
+    return response.json();
+  }
+}
+```
+
+## How Validation Works
+
+When you call `getApiKey()`, SaltyKeys:
+
+1. **Extracts the current context ID** (e.g., CodePen Pen ID)
+2. **Decodes the salted key** using multiple decoding layers
+3. **Compares the embedded ID** with the current context ID
+4. **Returns the API key** if IDs match, or `null` if they don't
+
+This context-based validation means:
+- ✅ The key works in the pen where it was created
+- ❌ The key fails in other pens or contexts
+- ❌ Someone copying your code can't use your API key
+
+## When `getApiKey()` Returns `null`
+
+Common reasons for failure:
+
+### Wrong Context
+The salted key was generated in a different pen/project:
+
+```js
+// Generated in Pen ID: abc123
+// But used in Pen ID: xyz789
+const key = SaltyKeys.getApiKey(saltedKey); // Returns null
+```
+
+**Solution**: Generate and use the key in the same context.
+
+### Invalid Salted Key
+The salted key is corrupted, truncated, or malformed:
+
+```js
+// Incomplete or modified key
+const key = SaltyKeys.getApiKey('MTcyMD...'); // Returns null
+```
+
+**Solution**: Copy the entire salted key correctly.
+
+### No Context ID Available
+SaltyKeys can't extract a Pen ID from the current URL:
+
+```js
+// Outside of CodePen, without configuration
+const key = SaltyKeys.getApiKey(saltedKey); // Returns null
+```
+
+**Solution**: [Configure SaltyKeys](/usage/configuration/) for your environment.
+
+### Decoding Errors
+The encoded data can't be decoded (rare):
+
+**Solution**: Regenerate the salted key.
+
+## Performance Considerations
+
+`getApiKey()` is designed to be lightweight, but you can optimize further:
+
+### Cache the Result
+
+```js
+// Don't do this repeatedly in a loop
+for (let i = 0; i < 1000; i++) {
+  const key = SaltyKeys.getApiKey(saltedKey); // Inefficient
+  // use key...
+}
+
+// Do this instead
+const apiKey = SaltyKeys.getApiKey(saltedKey); // Once
+for (let i = 0; i < 1000; i++) {
+  // use apiKey...
+}
+```
+
+### One-Time Initialization
+
+```js
+// Initialize once
+const API_KEY = SaltyKeys.getApiKey(SALTED_KEY);
+
+// Use throughout your code
+function fetchWeather() {
+  return fetch(`https://api.weather.com/data?key=${API_KEY}`);
+}
+
+function fetchForecast() {
+  return fetch(`https://api.weather.com/forecast?key=${API_KEY}`);
+}
+```
+
+## Security Reminder
+
+<Aside type="caution">
+Remember that retrieving an API key on the client side means the key is **visible in memory** and accessible via browser DevTools. This is inherent to client-side code and is why SaltyKeys is for educational use only, not production security.
+</Aside>
+
+## Next Steps
+
+- Learn about [environment-specific setup](/usage/environment-setup/)
+- Understand [how the obfuscation works](/concepts/how-it-works/)
+- See the [getApiKey() API reference](/api/core-methods/#getapikey)
+- Check the [Troubleshooting guide](/project/troubleshooting/) if you're having issues

@@ -1,0 +1,128 @@
+---
+title: Quick Start
+description: Get up and running with SaltyKeys.js in minutes.
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+This guide will walk you through a complete example of using SaltyKeys.js to obfuscate an API key in a CodePen project.
+
+<Aside type="tip">
+This quick start assumes you're using **CodePen**. For other environments, see the [Environment Setup guide](/usage/environment-setup/).
+</Aside>
+
+## Basic Workflow
+
+<Steps>
+
+1. **Create your CodePen**
+
+   Create a new pen at [CodePen.io](https://codepen.io/). You'll need the Pen ID from the URL (e.g., `https://codepen.io/yourname/pen/**abc123**`).
+
+2. **Include SaltyKeys.js**
+
+   Add SaltyKeys to your pen:
+
+   ```html
+   <script src="https://cdn.jsdelivr.net/gh/peterbenoit/SaltyKeys.js@latest/SaltyKeys.js"></script>
+   ```
+
+3. **Generate your salted key**
+
+   Open your browser's console **in the context of your pen** and run:
+
+   ```js
+   const saltedKey = SaltyKeys.generateSaltedKey('your-actual-api-key');
+   console.log(saltedKey);
+   ```
+
+   Copy the output. This is your salted key.
+
+4. **Use the salted key in your code**
+
+   In your pen's JavaScript, use the salted key to retrieve the actual API key:
+
+   ```js
+   // Replace this with your actual salted key from step 3
+   const saltedKey = 'YOUR_SALTED_KEY_HERE';
+
+   const apiKey = SaltyKeys.getApiKey(saltedKey);
+
+   if (apiKey) {
+     console.log('API key successfully retrieved!');
+     // Use apiKey in your API calls
+   } else {
+     console.error('Failed to retrieve API key');
+   }
+   ```
+
+</Steps>
+
+## Complete Example
+
+Here's a complete working example:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SaltyKeys Example</title>
+</head>
+<body>
+  <h1>API Key Test</h1>
+  <button id="testBtn">Test API Key</button>
+  <div id="output"></div>
+
+  <script src="https://cdn.jsdelivr.net/gh/peterbenoit/SaltyKeys.js@latest/SaltyKeys.js"></script>
+  <script>
+    // Your salted key (generated once using SaltyKeys.generateSaltedKey())
+    const saltedKey = 'YOUR_SALTED_KEY_HERE';
+
+    document.getElementById('testBtn').addEventListener('click', () => {
+      const apiKey = SaltyKeys.getApiKey(saltedKey);
+      const output = document.getElementById('output');
+
+      if (apiKey) {
+        output.textContent = '✅ API Key retrieved successfully!';
+        output.style.color = 'green';
+
+        // Now use apiKey in your actual API calls
+        // fetch(`https://api.example.com/data?key=${apiKey}`)
+      } else {
+        output.textContent = '❌ Failed to retrieve API key';
+        output.style.color = 'red';
+      }
+    });
+  </script>
+</body>
+</html>
+```
+
+## Important Notes
+
+<Aside type="caution">
+**Generate the salted key in the console, not in your code!**
+
+Never put your real API key directly in your visible code. Always generate the salted key using the console in your pen's context, then copy only the salted key into your code.
+</Aside>
+
+<Aside type="note">
+The salted key is **tied to your specific Pen ID**. If someone copies your code to a different pen, `getApiKey()` will return `null` because the Pen ID won't match.
+</Aside>
+
+## Troubleshooting
+
+**Problem**: `getApiKey()` returns `null`
+
+**Solutions**:
+- Make sure you generated the salted key in the **same pen** where you're using it
+- Verify you copied the entire salted key correctly
+- Check that SaltyKeys.js is loaded before your code runs
+- See the full [Troubleshooting Guide](/project/troubleshooting/) for more help
+
+## Next Steps
+
+- Learn about [Configuration options](/usage/configuration/) to customize SaltyKeys
+- Understand [How It Works](/concepts/how-it-works/) under the hood
+- Explore [all available methods](/api/core-methods/) in the API reference

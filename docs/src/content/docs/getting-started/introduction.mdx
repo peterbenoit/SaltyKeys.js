@@ -1,0 +1,68 @@
+---
+title: Introduction
+description: Learn about SaltyKeys.js and what it's designed to do.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## What is SaltyKeys.js?
+
+**SaltyKeys.js** is a JavaScript library for obfuscating and verifying API keys on the client side, specifically designed for use in **CodePen** and similar educational environments. It provides methods to extract a CodePen Pen ID, generate a salted API key, and retrieve the original API key if the context is valid.
+
+## Purpose
+
+SaltyKeys.js was created to address a common challenge in educational and demo environments: **how to share working code examples that use API keys without exposing those keys to potential misuse**.
+
+### Perfect For:
+
+- **CodePen demonstrations** and tutorials
+- **Educational content** where you want to show real API integration
+- **Public examples** that need some level of key protection
+- **Workshop materials** and coding examples
+- **Documentation** with live, interactive code samples
+
+### Not For:
+
+- **Production applications** requiring real security
+- **Commercial projects** with sensitive data
+- **Compliance-critical** environments (HIPAA, PCI-DSS, etc.)
+- **Applications** where a determined attacker must be prevented
+
+## How It Works (In Brief)
+
+SaltyKeys.js uses a clever context-aware obfuscation technique:
+
+1. **Generation**: You generate a salted key from your real API key. This salted key is tied to your specific CodePen Pen ID.
+2. **Embedding**: You embed the salted key in your code instead of the real API key.
+3. **Retrieval**: When your code runs, SaltyKeys extracts the current Pen ID and uses it to decode the salted key.
+4. **Validation**: If the Pen ID matches, you get your API key back. If someone copies your code to a different pen, it won't work.
+
+This creates a simple barrier that prevents casual copying and credential leakage while remaining practical for educational use.
+
+<Aside type="caution" title="Important Security Warning">
+**This is NOT encryption or secure key management!**
+
+SaltyKeys provides *obfuscation*, not security. A determined attacker with basic JavaScript knowledge can reverse-engineer the process. This library is designed for:
+- **Educational contexts** where some protection is better than none
+- **Reducing accidental exposure** and casual misuse
+- **Demos and tutorials** where real security isn't practical
+
+For production applications, **always store API keys server-side** and implement proper authentication and authorization.
+</Aside>
+
+## Key Features
+
+- **Zero Dependencies**: Self-contained, uses only native browser APIs
+- **CodePen Optimized**: Designed for CodePen's URL structure and embedding contexts
+- **Configurable**: Can be adapted for other platforms with custom URL patterns
+- **Multi-Layer Obfuscation**: Uses timestamp, nonce, and multi-layered encoding
+- **Built-in Caching**: Minimal performance overhead
+- **Unicode Support**: Safely handles Unicode characters in keys
+
+## Next Steps
+
+Ready to get started?
+
+- [Install SaltyKeys.js](/getting-started/installation/) in your project
+- Follow the [Quick Start Guide](/getting-started/quick-start/) for a working example
+- Learn about [configuration options](/usage/configuration/) for advanced use cases

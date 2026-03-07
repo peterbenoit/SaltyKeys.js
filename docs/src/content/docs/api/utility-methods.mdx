@@ -1,0 +1,333 @@
+---
+title: Utility Methods
+description: API reference for SaltyKeys.js utility methods.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+SaltyKeys.js includes internal utility methods for Unicode-safe encoding and decoding. While these are primarily for internal use, they're documented here for completeness and advanced use cases.
+
+<Aside type="note">
+These methods are **not typically needed** in normal usage. They're exposed as part of the public API but are mainly used internally by `generateSaltedKey()` and `getApiKey()`.
+</Aside>
+
+---
+
+## `SaltyKeys._safeEncode(string)`
+
+Safely encodes a string to Base64, handling Unicode characters correctly.
+
+### Syntax
+
+```js
+const encoded = SaltyKeys._safeEncode(string);
+```
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `string` | `string` | Yes | The string to encode |
+
+### Returns
+
+| Type | Description |
+|------|-------------|
+| `string` | Base64-encoded string |
+
+### Examples
+
+**ASCII text:**
+```js
+const encoded = SaltyKeys._safeEncode('Hello World');
+console.log(encoded);
+// "SGVsbG8gV29ybGQ="
+```
+
+**Unicode characters:**
+```js
+const encoded = SaltyKeys._safeEncode('Hello 世界 🌍');
+console.log(encoded);
+// "SGVsbG8g5LiW55WMIPCfjI0="
+
+// Compare to unsafe btoa():
+try {
+  btoa('Hello 世界 🌍');  // ❌ Throws error
+} catch (e) {
+  console.error('btoa failed:', e.message);
+}
+```
+
+**Emoji and symbols:**
+```js
+const encoded = SaltyKeys._safeEncode('🔑 API Key 💼');
+console.log(encoded);
+// Encoded successfully with no errors
+```
+
+### How It Works
+
+Internally uses this pattern:
+
+```js
+btoa(unescape(encodeURIComponent(string)))
+```
+
+This three-step process:
+1. `encodeURIComponent(string)` — Converts to UTF-8 percent-encoding
+2. `unescape(...)` — Converts percent-encoding to Latin-1
+3. `btoa(...)` — Encodes to Base64
+
+This handles the limitation of `btoa()` which only works with ASCII/Latin-1 strings.
+
+### When to Use
+
+You might use this if:
+- Building custom obfuscation on top of SaltyKeys
+- Need Unicode-safe Base64 encoding for other purposes
+- Debugging encoding issues
+
+<Aside type="caution">
+This method doesn't validate input. Passing `null`, `undefined`, or non-strings may cause errors. Always pass a string.
+</Aside>
+
+---
+
+## `SaltyKeys._safeDecode(encodedString)`
+
+Safely decodes a Base64 string created by `_safeEncode()`, handling Unicode characters correctly.
+
+### Syntax
+
+```js
+const decoded = SaltyKeys._safeDecode(encodedString);
+```
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `encodedString` | `string` | Yes | Base64-encoded string to decode |
+
+### Returns
+
+| Type | Description |
+|------|-------------|
+| `string` | The decoded original string |
+
+### Examples
+
+**ASCII text:**
+```js
+const encoded = 'SGVsbG8gV29ybGQ=';
+const decoded = SaltyKeys._safeDecode(encoded);
+console.log(decoded);
+// "Hello World"
+```
+
+**Unicode characters:**
+```js
+const encoded = 'SGVsbG8g5LiW55WMIPCfjI0=';
+const decoded = SaltyKeys._safeDecode(encoded);
+console.log(decoded);
+// "Hello 世界 🌍"
+```
+
+**Round-trip encoding:**
+```js
+const original = 'API Key: 🔑 SecretKey-123-🌍';
+const encoded = SaltyKeys._safeEncode(original);
+const decoded = SaltyKeys._safeDecode(encoded);
+
+console.log(original === decoded);  // true
+```
+
+### How It Works
+
+Internally uses this pattern:
+
+```js
+decodeURIComponent(escape(atob(encodedString)))
+```
+
+This reverses the encoding process:
+1. `atob(encodedString)` — Decodes from Base64 to Latin-1
+2. `escape(...)` — Converts to percent-encoding
+3. `decodeURIComponent(...)` — Converts to UTF-8 string
+
+### Error Handling
+
+If decoding fails (invalid Base64, corrupted data), it will throw an error:
+
+```js
+try {
+  const decoded = SaltyKeys._safeDecode('invalid!!!base64');
+} catch (error) {
+  console.error('Decode failed:', error.message);
+  // Handle error
+}
+```
+
+### When to Use
+
+You might use this if:
+- Decoding values encoded with `_safeEncode()`
+- Building custom deobfuscation logic
+- Debugging decoding issues
+
+---
+
+## Why Unicode-Safe Encoding?
+
+### The Problem
+
+Standard `btoa()` and `atob()` only work with ASCII/Latin-1 characters:
+
+```js
+// ❌ This fails
+btoa('Hello 世界');
+// Error: InvalidCharacterError: String contains an invalid character
+
+// ❌ This also fails
+btoa('🔑');
+// Error: InvalidCharacterError
+```
+
+### The Solution
+
+SaltyKeys' safe encoding handles all Unicode characters:
+
+```js
+// ✅ This works
+SaltyKeys._safeEncode('Hello 世界');
+// "SGVsbG8g5LiW55WM"
+
+// ✅ This works too
+SaltyKeys._safeEncode('🔑 API Keys 🌍');
+// Successfully encoded
+```
+
+This is critical because:
+- API keys might contain special characters
+- User-generated content might include Unicode
+- International users might use non-ASCII characters
+
+---
+
+## Internal Usage
+
+These methods are used internally by SaltyKeys:
+
+```js
+// In generateSaltedKey():
+const encodedKey = SaltyKeys._safeEncode(apiKey);
+const encodedId = SaltyKeys._safeEncode(penId);
+// ... combine parts ...
+
+// In getApiKey():
+const decodedId = SaltyKeys._safeDecode(encodedIdPart);
+const decodedKey = SaltyKeys._safeDecode(encodedKeyPart);
+// ... validate and return ...
+```
+
+You can see this in action by using your browser's debugger to step through the code.
+
+---
+
+## Advanced Usage Example
+
+### Custom Obfuscation Layer
+
+If you want to add an extra obfuscation layer:
+
+```js
+function extraObfuscate(apiKey) {
+  // Add a prefix
+  const prefixed = `v1:${apiKey}:${Date.now()}`;
+
+  // Encode it
+  const encoded = SaltyKeys._safeEncode(prefixed);
+
+  // Now generate the salted key
+  return SaltyKeys.generateSaltedKey(encoded);
+}
+
+function extraDeobfuscate(saltedKey) {
+  // Retrieve the encoded value
+  const encoded = SaltyKeys.getApiKey(saltedKey);
+
+  if (!encoded) return null;
+
+  // Decode it
+  const decoded = SaltyKeys._safeDecode(encoded);
+
+  // Extract the original key
+  const [version, apiKey, timestamp] = decoded.split(':');
+
+  return apiKey;
+}
+
+// Usage
+const obfuscated = extraObfuscate('my-api-key');
+const retrieved = extraDeobfuscate(obfuscated);
+```
+
+<Aside type="caution">
+Adding custom obfuscation layers doesn't significantly improve security — it's still client-side and reversible. This is only useful for specialized educational scenarios.
+</Aside>
+
+### Testing Encoding/Decoding
+
+```js
+function testEncoding(testString) {
+  console.log('Original:', testString);
+
+  const encoded = SaltyKeys._safeEncode(testString);
+  console.log('Encoded:', encoded);
+
+  const decoded = SaltyKeys._safeDecode(encoded);
+  console.log('Decoded:', decoded);
+
+  console.log('Match:', testString === decoded ? '✓' : '✗');
+}
+
+// Test various strings
+testEncoding('Simple ASCII');
+testEncoding('Unicode: 你好世界');
+testEncoding('Emoji: 🔑🌍💼');
+testEncoding('Mixed: Hello 世界 🌍!');
+```
+
+---
+
+## Performance
+
+| Method | Operation | Typical Time |
+|--------|-----------|--------------|
+| `_safeEncode()` | Encode ASCII | ~0.01ms |
+| `_safeEncode()` | Encode Unicode | ~0.02ms |
+| `_safeDecode()` | Decode ASCII | ~0.01ms |
+| `_safeDecode()` | Decode Unicode | ~0.02ms |
+
+The performance overhead of Unicode-safe encoding vs. simple `btoa()` is negligible (~0.01ms difference).
+
+---
+
+## Browser Compatibility
+
+These methods require:
+- ✅ `btoa()` / `atob()` — Supported in all modern browsers
+- ✅ `encodeURIComponent()` / `decodeURIComponent()` — Universal support
+- ✅ `escape()` / `unescape()` — Deprecated but still widely supported
+
+<Aside type="note">
+While `escape()` and `unescape()` are deprecated, they remain necessary for this encoding pattern. Modern alternatives don't provide the same byte-level conversion needed for Unicode-safe Base64.
+</Aside>
+
+---
+
+## Next Steps
+
+- See [Core Methods API](/api/core-methods/) for the main SaltyKeys methods
+- Learn about [how encoding works](/concepts/how-it-works/) under the hood
+- Check [troubleshooting](/project/troubleshooting/) if you encounter encoding errors

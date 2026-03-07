@@ -1,0 +1,276 @@
+---
+title: Security Considerations
+description: Understand the security limitations and best practices for SaltyKeys.js.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+<Aside type="danger" title="Critical Security Warning">
+**SaltyKeys.js is NOT a security solution!**
+
+This library provides **obfuscation**, not encryption or secure key management. It is designed for **educational purposes only**. Never use SaltyKeys for production applications requiring real security.
+</Aside>
+
+## What SaltyKeys Is
+
+✅ **An educational tool** for demonstrating API integration
+✅ **A practical barrier** against casual copying
+✅ **An obfuscation layer** to hide keys from plain sight
+✅ **A context-aware validator** to prevent cross-pen usage
+
+## What SaltyKeys Is NOT
+
+❌ **Not encryption**: The keys can be reversed with effort
+❌ **Not secure**: Client-side code is inherently vulnerable
+❌ **Not production-ready**: This is for demos and learning only
+❌ **Not compliance-friendly**: Won't meet security standards (PCI-DSS, HIPAA, etc.)
+
+## Security Limitations
+
+### Anyone with JavaScript Knowledge Can Reverse It
+
+An attacker who understands JavaScript can:
+
+1. **Read the SaltyKeys source code** to understand the encoding
+2. **Set breakpoints** in DevTools to intercept the decoded key
+3. **Call the decode functions** directly in the console
+4. **Extract the key** from memory after it's decoded
+
+**Example attack:**
+```js
+// Attacker opens DevTools console
+const saltedKey = 'MTc...observed from your code...';
+const apiKey = SaltyKeys.getApiKey(saltedKey);
+console.log(apiKey); // Your key is exposed
+```
+
+### Client-Side Code Is Visible
+
+Everything that happens in the browser is visible to users:
+- Source code is readable (even if minified)
+- Network requests can be intercepted
+- Memory can be inspected
+- Execution can be paused and analyzed
+
+### Obfuscation ≠ Security
+
+Obfuscation makes something harder to read but doesn't make it secure. Think of it like:
+
+- **Obfuscation**: Writing a secret in a different alphabet
+- **Encryption**: Using a mathematically secure cipher with a secret key
+
+Anyone can learn the alphabet; breaking real encryption requires computational power beyond practical limits.
+
+## When SaltyKeys Is Appropriate
+
+### ✅ Good Use Cases
+
+**Educational Tutorials**
+```
+"Here's how to use the Google Maps API..."
+```
+You want to show working code without exposing your key for unlimited abuse.
+
+**Live Coding Demos**
+```
+"Watch me build a weather app in 20 minutes..."
+```
+You want the API calls to work during the demo without publishing your key.
+
+**Workshop Materials**
+```
+"Everyone clone this CodePen and modify it..."
+```
+Participants can experiment with working code, but can't reuse your key elsewhere.
+
+**Documentation Examples**
+```
+"Here's a working example you can try..."
+```
+Users can run your examples without each needing their own API key.
+
+**Coding Challenges**
+```
+"Use this API to fetch data and display it..."
+```
+Participants can focus on the challenge, not API setup.
+
+### ❌ Bad Use Cases
+
+**Production Applications**
+```
+"Our web app uses SaltyKeys to protect our API key..."
+```
+❌ Use server-side key management instead.
+
+**E-commerce Sites**
+```
+"We obfuscate our payment API keys..."
+```
+❌ This violates PCI-DSS. Use proper security.
+
+**Sensitive Data**
+```
+"We use SaltyKeys to protect healthcare API access..."
+```
+❌ This violates HIPAA. Keys must be server-side.
+
+**Financial Applications**
+```
+"Our trading bot uses obfuscated API keys..."
+```
+❌ Absolutely not. Your keys will be stolen.
+
+**Authentication Tokens**
+```
+"We hide user auth tokens with SaltyKeys..."
+```
+❌ Use secure authentication flows (OAuth, JWT).
+
+## Best Practices for Educational Use
+
+Even in educational contexts, follow these practices:
+
+### 1. Use Limited API Keys
+
+Create API keys with minimal permissions:
+
+```
+✅ Read-only access
+✅ Rate limits enabled
+✅ Usage alerts configured
+✅ Restricted to specific domains (if possible)
+✅ Quota limits set
+```
+
+### 2. Monitor Usage
+
+Keep an eye on your API usage:
+- Set up billing alerts
+- Monitor for unusual patterns
+- Rotate keys periodically
+- Revoke keys if abuse is detected
+
+### 3. Educate Users
+
+Make it clear in your demos:
+
+```html
+<!-- Add a disclaimer to your demos -->
+<aside class="warning">
+  <strong>Note:</strong> The API key in this demo is obfuscated
+  for educational purposes. This is NOT secure for production use.
+  Learn about proper API key management at [link].
+</aside>
+```
+
+### 4. Use Demo-Specific Keys
+
+Don't use the same API keys for:
+- ❌ Your production apps
+- ❌ Your personal projects
+- ❌ Critical infrastructure
+
+Instead, create separate "demo keys" specifically for public examples.
+
+### 5. Have a Revocation Plan
+
+Be prepared to:
+1. Detect if a key is being abused
+2. Revoke the compromised key quickly
+3. Update your demos with a new key
+4. Regenerate all salted keys
+
+## Recommended Architecture for Production
+
+For real applications, use this architecture:
+
+```
+┌─────────────┐      ┌─────────────┐      ┌───────────────┐
+│             │      │             │      │               │
+│   Client    │──────│   Your API  │──────│  External API │
+│   (Browser) │      │   Proxy     │      │   Service     │
+│             │      │   (Server)  │      │               │
+└─────────────┘      └─────────────┘      └───────────────┘
+  No API keys        Secure key            Actual API
+  stored here        storage here          service
+
+API Flow:
+1. Client makes request to your proxy
+2. Your server validates the request (auth, rate limits)
+3. Your server adds the API key
+4. Your server forwards to external API
+5. Response flows back through your server
+6. Client receives only the data
+```
+
+### Example Server-Side Proxy (Node.js/Express)
+
+```js
+// server.js (DO THIS INSTEAD)
+const express = require('express');
+const axios = require('axios');
+require('dotenv').config();
+
+const app = express();
+
+app.get('/api/weather', async (req, res) => {
+  // Validate request
+  if (!req.query.city) {
+    return res.status(400).json({ error: 'City required' });
+  }
+
+  try {
+    // Make request with server-side key
+    const response = await axios.get('https://api.weatherapi.com/v1/current.json', {
+      params: {
+        key: process.env.WEATHER_API_KEY, // Secure, server-side
+        q: req.query.city
+      }
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    res.status(500).json({ error: 'API request failed' });
+  }
+});
+
+app.listen(3000);
+```
+
+### Client-Side Code (Secure)
+
+```js
+// client.js (secure approach)
+async function getWeather(city) {
+  // Call YOUR proxy, not the external API directly
+  const response = await fetch(`/api/weather?city=${city}`);
+  return response.json();
+}
+```
+
+## Security Checklist
+
+Before deploying any project, ask yourself:
+
+- [ ] Does this contain sensitive user data?
+- [ ] Would abuse cost money or cause harm?
+- [ ] Do regulations apply (GDPR, HIPAA, PCI-DSS)?
+- [ ] Is this a production application?
+- [ ] Could an attacker profit from accessing this API?
+
+If you answered **YES** to any question, **DO NOT use client-side API keys**. Use a server-side proxy instead.
+
+## Resources
+
+Learn more about proper API security:
+
+- [OWASP API Security Top 10](https://owasp.org/www-project-api-security/)
+- [API Key Security Best Practices](https://cloud.google.com/docs/authentication/api-keys)
+- [OAuth 2.0 for API Security](https://oauth.net/2/)
+
+## Next Steps
+
+- Understand [performance considerations](/concepts/performance/)
+- Learn about [deployment architecture](/project/deployment/)
+- See [browser compatibility requirements](/project/browser-compatibility/)
