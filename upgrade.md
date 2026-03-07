@@ -356,6 +356,42 @@ For dark mode, use `:global([data-theme='dark']) .your-class { ... }`.
 
 ---
 
+## CDN availability for your library
+
+Before wiring up CodePen integration, make sure your library is available from a
+CDN that CodePen (and other sandboxed environments) can load. **Do not use raw
+GitHub file URLs** (`raw.githubusercontent.com`) — browsers block script execution
+from that host in sandboxed iframes.
+
+The standard choices are:
+
+| CDN | URL pattern | Notes |
+|-----|-------------|-------|
+| **jsDelivr** | `https://cdn.jsdelivr.net/gh/{user}/{repo}@{tag}/{file}` | Recommended. Mirrors GitHub releases and branches. Works in CodePen. |
+| **unpkg** | `https://unpkg.com/{package}@{version}/{file}` | npm-only. Requires the lib to be published to npm. |
+| **cdnjs** | `https://cdnjs.cloudflare.com/ajax/libs/{lib}/{version}/{file}` | Manual submission required. |
+
+**jsDelivr from a GitHub branch (no npm publish needed):**
+
+```
+https://cdn.jsdelivr.net/gh/your-username/your-repo@main/your-lib.js
+```
+
+**jsDelivr from a tagged release (recommended for stability):**
+
+```
+https://cdn.jsdelivr.net/gh/your-username/your-repo@v1.0.0/your-lib.js
+```
+
+Always use a tag or commit SHA in production — `@main` will serve whatever is
+currently on the default branch, which may break consumers when you push changes.
+
+**Hardcode the CDN URL in your `CodePenButton` component** so every demo pen
+automatically loads your library at the correct version. Users should not need to
+know the CDN URL.
+
+---
+
 ## CodePen integration
 
 If your project has interactive examples, you can add a **CodePen button** component
@@ -384,8 +420,12 @@ const {
   html = '',
   css = '',
   js = '',
-  jsExternal = '', // Add your default CDN URLs here
+  jsExternal = '',
 } = Astro.props;
+
+// Hardcode your library's jsDelivr CDN URL so every demo pen loads it automatically.
+// Use a tagged release (e.g. @v1.0.0) rather than @main for stability.
+const LIB_CDN = 'https://cdn.jsdelivr.net/gh/your-username/your-repo@main/your-lib.js';
 
 // CodePen prefill data — the form field must be JSON-stringified
 const penData = JSON.stringify({
@@ -394,8 +434,8 @@ const penData = JSON.stringify({
   css,
   js,
   js_external: [
+    LIB_CDN,
     jsExternal,
-    // Add your library's CDN URL here (jsDelivr, unpkg, etc.)
   ].filter(Boolean).join(';'),
   editors: '1010', // HTML + JS open, CSS collapsed
 });
