@@ -2,6 +2,22 @@
 
 A JavaScript library for obfuscating and verifying API keys on the client side while using CodePen. **SaltyKeys** provides methods to extract a CodePen Pen ID, generate a salted API key, and retrieve the original API key if the context is valid.
 
+## Documentation Site
+
+The documentation site is powered by Astro from the `docs/` directory, but the repository root is the intended entrypoint for local development and Vercel builds.
+
+```bash
+npm run dev
+```
+
+This starts the Astro docs locally and syncs the legacy demo assets so `/demo.html` and `/SaltyKeys.js` continue to work.
+
+```bash
+npm run build
+```
+
+This builds the Astro docs for deployment and includes the legacy demo page, icons, and library file in the final static output.
+
 ## Disclaimer
 
 **Warning**: This library is intended for educational purposes only and is **not secure** for use in a production environment. The methods provided rely on client-side obfuscation techniques, which are inherently insecure and can be easily reversed by unskilled attackers. Sensitive information, such as API keys, should always be stored and managed on the server side, never exposed to client-side scripts.
