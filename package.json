@@ -1,0 +1,27 @@
+{
+	"name": "saltykeys.js",
+	"version": "1.0.0",
+	"description": "A JavaScript library for obfuscating and verifying API keys on CodePen.",
+	"license": "MIT",
+	"author": "Peter Benoit <peter@uiguy.dev> (https://uiguy.dev)",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/peterbenoit/SaltyKeys.js.git"
+	},
+	"bugs": {
+		"url": "https://github.com/peterbenoit/SaltyKeys.js/issues"
+	},
+	"homepage": "https://peterbenoit.github.io/SaltyKeys.js",
+	"scripts": {
+		"dev": "npm run dev --prefix docs",
+		"build": "npm run build --prefix docs",
+		"preview": "npm run preview --prefix docs"
+	},
+	"keywords": [
+		"api-key",
+		"obfuscation",
+		"codepen",
+		"client-side",
+		"educational"
+	]
+}

@@ -1,0 +1,73 @@
+---
+title: getApiKey()
+description: Decode a salted key and retrieve the original API key if the pen ID matches.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## Signature
+
+```ts
+SaltyKeys.getApiKey(saltedKey: string): string | null
+```
+
+## Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `saltedKey` | `string` | The obfuscated key produced by `generateSaltedKey()`. |
+
+## Returns
+
+| Value | Meaning |
+|-------|---------|
+| `string` | The original API key — the pen ID in the salted key matched the current pen ID. |
+| `null` | Decoding failed, the key format was invalid, or the pen ID did not match. |
+
+## How decoding works
+
+`getApiKey()` reverses the encoding steps from `generateSaltedKey()`:
+
+1. Reverse the salted key string character-by-character
+2. Base64-decode the result
+3. Split on `":"` to extract `[apiKey, penId, timestamp, nonce]`
+4. Compare `penId` to the current pen ID from `getPenId()`
+5. Return `apiKey` if they match, `null` otherwise
+
+The **pen ID check is the security control**: a salted key generated in pen `AbCdEf` will fail to decode when loaded in pen `XyZwVu`.
+
+## Example
+
+```js
+// Salted key generated in this pen's console
+const SALTED_KEY = 'your-salted-key-here';
+
+const apiKey = SaltyKeys.getApiKey(SALTED_KEY);
+
+if (apiKey) {
+  console.log('API key retrieved:', apiKey);
+  // Use it — e.g. pass to a fetch call
+  fetchWeatherData(apiKey);
+} else {
+  console.warn('SaltyKeys: failed to retrieve API key.');
+}
+```
+
+## Error cases
+
+| Situation | Return value | Console warning |
+|-----------|-------------|-----------------|
+| `saltedKey` is empty or not a string | `null` | `"Invalid salted key format."` |
+| Pen ID could not be extracted | `null` | `"Unable to extract Pen ID."` |
+| Base64 decoding fails | `null` | `"Failed to decode the salted key."` |
+| Key has fewer than 4 components after split | `null` | `"Invalid key format: missing components."` |
+| Pen ID in key does not match current pen | `null` | `"Pen ID mismatch. Unable to retrieve the API key."` |
+| Any unexpected error | `null` | `"Error retrieving API key: ..."` |
+
+<Aside type="tip">
+  Always check the return value of `getApiKey()` before using it. A `null` return is expected when the salted key is invalid or the pen context is wrong — treat it as a graceful "not available" rather than a crash condition.
+</Aside>
+
+## Unicode support
+
+Both `generateSaltedKey()` and `getApiKey()` use Unicode-safe Base64 helpers (`_safeEncode` / `_safeDecode`) built on `encodeURIComponent` + `btoa`. API keys containing non-ASCII characters are handled correctly.

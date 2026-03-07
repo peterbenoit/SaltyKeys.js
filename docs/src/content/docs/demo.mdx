@@ -1,0 +1,146 @@
+---
+title: Interactive Demo
+description: Try SaltyKeys.js in the browser — generate salted keys and decode them live.
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+import CodePenButton from '../../components/CodePenButton.astro';
+
+<Aside type="caution">
+  These demos simulate a CodePen environment. The salted keys generated here are specific to each demo pen — they won't be portable between pens.
+</Aside>
+
+## Demo 1 — Generate and decode a key
+
+This pen demonstrates the full workflow: configure SaltyKeys, generate a salted key in the console, then decode it.
+
+<CodePenButton
+  title="SaltyKeys.js — Generate & Decode Demo"
+  html={`<div id="app" style="font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem;">
+  <h1>SaltyKeys.js Demo</h1>
+  <p>Open the browser console and follow the instructions below.</p>
+  <div id="output" style="background: #f0f0f0; padding: 1rem; border-radius: 4px; margin-top: 1rem; font-family: monospace; white-space: pre-wrap;"></div>
+</div>`}
+  js={`// --- SaltyKeys.js is loaded as an external script ---
+
+const output = document.getElementById('output');
+
+function log(msg) {
+  output.textContent += msg + '\\n';
+}
+
+// Step 1: Check we can extract a pen ID
+const penId = SaltyKeys.getPenId();
+log('Pen ID: ' + (penId || 'null (not on CodePen)'));
+
+// Step 2: Generate a salted key
+const apiKey = 'demo-api-key-12345';
+const salted = SaltyKeys.generateSaltedKey(apiKey);
+log('Salted key: ' + salted);
+
+// Step 3: Decode it
+const decoded = SaltyKeys.getApiKey(salted);
+log('Decoded key: ' + decoded);
+log('Match: ' + (decoded === apiKey ? 'YES ✓' : 'NO ✗'));`}
+/>
+
+## Demo 2 — Context validation
+
+This pen generates a salted key, then shows that changing the simulated pen ID causes `getApiKey()` to return `null`.
+
+<CodePenButton
+  title="SaltyKeys.js — Context Validation Demo"
+  html={`<div id="app" style="font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem;">
+  <h1>Context Validation</h1>
+  <p>Demonstrates that a salted key only works in the pen it was created for.</p>
+  <div id="output" style="background: #f0f0f0; padding: 1rem; border-radius: 4px; margin-top: 1rem; font-family: monospace; white-space: pre-wrap;"></div>
+</div>`}
+  js={`// --- SaltyKeys.js is loaded as an external script ---
+
+const output = document.getElementById('output');
+function log(msg) { output.textContent += msg + '\\n'; }
+
+// Generate key in the real pen context
+const apiKey = 'my-secret-key';
+const salted = SaltyKeys.generateSaltedKey(apiKey);
+log('Generated salted key in this pen.');
+log('Salted: ' + salted);
+log('');
+
+// Decode in same context — should succeed
+const decoded = SaltyKeys.getApiKey(salted);
+log('Decoded in same pen: ' + decoded + ' (' + (decoded ? 'SUCCESS ✓' : 'FAILED ✗') + ')');
+log('');
+
+// Simulate a different pen ID by overriding getPenId
+const originalGetPenId = SaltyKeys.getPenId.bind(SaltyKeys);
+SaltyKeys.getPenId = () => 'DIFFERENT_PEN_ID';
+
+const decodedWrong = SaltyKeys.getApiKey(salted);
+log('Decoded with wrong pen ID: ' + decodedWrong + ' (' + (decodedWrong ? 'SUCCESS' : 'FAILED (expected) ✓') + ')');
+
+// Restore
+SaltyKeys.getPenId = originalGetPenId;`}
+/>
+
+## Demo 3 — Custom URL pattern
+
+Configure SaltyKeys for a non-CodePen environment using a custom URL pattern.
+
+<CodePenButton
+  title="SaltyKeys.js — Custom URL Pattern Demo"
+  html={`<div id="app" style="font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem;">
+  <h1>Custom URL Pattern</h1>
+  <p>Shows SaltyKeys configured for a hypothetical non-CodePen site.</p>
+  <div id="output" style="background: #f0f0f0; padding: 1rem; border-radius: 4px; margin-top: 1rem; font-family: monospace; white-space: pre-wrap;"></div>
+</div>`}
+  js={`// --- SaltyKeys.js is loaded as an external script ---
+
+const output = document.getElementById('output');
+function log(msg) { output.textContent += msg + '\\n'; }
+
+// Override getPenId to return a fixed project ID (simulating a custom environment)
+SaltyKeys.configure({ environment: 'custom' });
+SaltyKeys.getPenId = () => 'my-project-id-abc123';
+
+const apiKey = 'weather-api-key-xyz';
+const salted = SaltyKeys.generateSaltedKey(apiKey);
+log('Custom env salted key: ' + salted);
+
+const decoded = SaltyKeys.getApiKey(salted);
+log('Decoded: ' + decoded);
+log('Match: ' + (decoded === apiKey ? 'YES ✓' : 'NO ✗'));`}
+/>
+
+## Running demos locally
+
+If you want to test SaltyKeys.js without CodePen:
+
+<Tabs>
+  <TabItem label="Browser console">
+    1. Open any webpage in your browser
+    2. Open Developer Tools → Console
+    3. Paste the contents of `SaltyKeys.js`
+    4. Override `getPenId` to return a fixed string:
+       ```js
+       SaltyKeys.getPenId = () => 'test-id';
+       const salted = SaltyKeys.generateSaltedKey('my-key');
+       console.log(SaltyKeys.getApiKey(salted)); // → 'my-key'
+       ```
+  </TabItem>
+  <TabItem label="Node.js (limited)">
+    SaltyKeys.js uses browser globals (`window`, `document`, `btoa`). To test in Node.js, polyfill them:
+
+    ```js
+    global.window = { location: { href: 'https://codepen.io/user/pen/AbCdEf' } };
+    global.document = { querySelector: () => null };
+    global.btoa = (s) => Buffer.from(s, 'binary').toString('base64');
+    global.atob = (s) => Buffer.from(s, 'base64').toString('binary');
+
+    // Then load SaltyKeys
+    eval(require('fs').readFileSync('SaltyKeys.js', 'utf8'));
+
+    console.log(SaltyKeys.getPenId()); // → 'AbCdEf'
+    ```
+  </TabItem>
+</Tabs>

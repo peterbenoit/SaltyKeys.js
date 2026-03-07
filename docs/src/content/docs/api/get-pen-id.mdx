@@ -1,0 +1,70 @@
+---
+title: getPenId()
+description: Extract the CodePen pen ID (or custom project identifier) from the current page URL.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## Signature
+
+```ts
+SaltyKeys.getPenId(): string | null
+```
+
+## Returns
+
+| Value | Meaning |
+|-------|---------|
+| `string` | The captured ID from the URL (first capture group of `urlPattern`). |
+| `null` | The URL did not match the pattern and no canonical `<link>` was found, or caching is disabled and no ID was extractable. |
+
+## Behavior
+
+`getPenId()` uses a two-step strategy to find the pen ID:
+
+1. **URL match** — tests `window.location.href` against `SaltyKeys.config.urlPattern`
+2. **Canonical link fallback** — if the direct URL match fails (common in embedded iframes), looks for `<link rel="canonical">` in the document `<head>` and tests its `href` attribute
+
+If `cacheEnabled` is `true` (the default), the result is stored in a private field after the first successful extraction and returned immediately on subsequent calls.
+
+## Examples
+
+### Basic usage
+
+```js
+const penId = SaltyKeys.getPenId();
+
+if (penId) {
+  console.log('Pen ID:', penId); // e.g. "XWbpNvY"
+} else {
+  console.warn('Not running in a recognised CodePen context.');
+}
+```
+
+### Testing from the browser console
+
+Navigate to a CodePen pen, open the console, and run:
+
+```js
+SaltyKeys.getPenId(); // → "AbCdEf" (the pen's slug)
+```
+
+<Aside type="tip">
+  When a pen is embedded as an `<iframe>` on another page, `window.location.href` points to the parent page, not the pen URL. The canonical link fallback handles this case automatically — CodePen adds a canonical `<link>` inside the iframe document.
+</Aside>
+
+### Resetting the cache
+
+If you need to force a re-extraction (for example, after navigating in a single-page app):
+
+```js
+// Disable and re-enable caching or reconfigure
+SaltyKeys.configure({ cacheEnabled: false });
+const id = SaltyKeys.getPenId();
+SaltyKeys.configure({ cacheEnabled: true });
+```
+
+## Notes
+
+- The extracted value is the first regex capture group from `urlPattern`. Make sure your custom pattern has **exactly one capture group**.
+- `getPenId()` is called internally by both `generateSaltedKey()` and `getApiKey()`. You rarely need to call it directly.

@@ -1,0 +1,82 @@
+---
+title: Installation
+description: How to include SaltyKeys.js in your CodePen or other project.
+---
+
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+## CodePen (recommended context)
+
+SaltyKeys.js is designed primarily for use in [CodePen](https://codepen.io/). The simplest approach is to add the script directly in your pen's HTML or JS panel.
+
+### Option 1 — Script tag in HTML panel
+
+```html
+<script src="https://raw.githubusercontent.com/peterbenoit/SaltyKeys.js/main/SaltyKeys.js"></script>
+```
+
+### Option 2 — Paste the source directly
+
+Copy the contents of [`SaltyKeys.js`](https://github.com/peterbenoit/SaltyKeys.js/blob/main/SaltyKeys.js) and paste it into the **JS** panel of your pen. This keeps everything self-contained without an external request.
+
+<Aside type="tip">
+  Pasting the source directly is the most reliable approach on CodePen — external script requests occasionally fail due to CORS restrictions depending on the CDN used.
+</Aside>
+
+## Other environments
+
+<Tabs>
+  <TabItem label="Direct script tag">
+    ```html
+    <script src="path/to/SaltyKeys.js"></script>
+    ```
+
+    The `SaltyKeys` class is exposed as a global on `window`.
+  </TabItem>
+  <TabItem label="ES Module (requires edit)">
+    SaltyKeys.js is not packaged as an ES module out of the box. To use it as one, add an `export` statement to the bottom of the file:
+
+    ```js
+    // At the bottom of SaltyKeys.js
+    export default SaltyKeys;
+    ```
+
+    Then import it anywhere:
+
+    ```js
+    import SaltyKeys from './path/to/SaltyKeys.js';
+    ```
+  </TabItem>
+</Tabs>
+
+## Using outside CodePen
+
+If you use SaltyKeys outside of CodePen, the default URL pattern won't match your environment. You need to configure a custom `urlPattern` that captures your project identifier from the page URL.
+
+```js
+SaltyKeys.configure({
+  urlPattern: /your-site\.com\/projects\/([^?#]+)/,
+  environment: 'custom',
+});
+```
+
+Or override `getPenId` entirely:
+
+```js
+SaltyKeys.getPenId = function () {
+  return window.location.pathname.split('/').pop();
+};
+```
+
+See the [configure() API reference](/api/configure/) for all available options.
+
+## Verifying the installation
+
+Open your browser's developer console and run:
+
+```js
+console.log(typeof SaltyKeys); // → "function"
+console.log(SaltyKeys.getPenId()); // → your pen ID, or null if URL doesn't match
+```
+
+If `getPenId()` returns `null`, check that your URL matches the configured `urlPattern`.

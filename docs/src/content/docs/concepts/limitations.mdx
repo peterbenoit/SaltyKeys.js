@@ -1,0 +1,80 @@
+---
+title: Limitations & Security
+description: Understand the limitations of client-side obfuscation and when to use SaltyKeys.js.
+---
+
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
+
+<Aside type="danger" title="Not a security solution">
+  SaltyKeys.js is an **educational tool**. Client-side obfuscation is not encryption. A determined attacker with browser developer tools can decode any salted key in seconds.
+</Aside>
+
+## What SaltyKeys does NOT provide
+
+### Not encryption
+
+Base64 is an encoding scheme, not encryption. It can be decoded by anyone without a key or password. The string reversal adds no meaningful cryptographic strength.
+
+### Not secret key storage
+
+The salted key lives in your pen's JavaScript, which is fully visible to anyone who views the pen source. Developer tools → Sources → your JS file → the salted key is right there.
+
+### Not authentication
+
+SaltyKeys does not verify **who** is calling your API — only **where** the call originated (which pen ID was encoded). Anyone in your pen's iframe can call `SaltyKeys.getApiKey()` from the console.
+
+### Not CORS protection
+
+SaltyKeys has no interaction with the network. It cannot prevent cross-origin requests to your API if an attacker extracts the key.
+
+## What SaltyKeys DOES provide
+
+<CardGrid>
+  <Card title="Copy-paste friction" icon="warning">
+    A key extracted from one pen won't work when pasted into another pen with a different ID. This stops the laziest attacks.
+  </Card>
+  <Card title="Casual deterrence" icon="approve-check-circle">
+    Most developers skimming a pen's source won't immediately recognise a reversed Base64 string as an API key.
+  </Card>
+  <Card title="Educational value" icon="open-book">
+    Demonstrates context-binding, obfuscation techniques, and the limitations of client-side security.
+  </Card>
+</CardGrid>
+
+## Appropriate use cases
+
+✅ **Good fit:**
+- CodePen demos using APIs with low-value or rate-limited free-tier keys
+- Educational projects demonstrating API usage without exposing production credentials
+- Quick prototypes where you want minimal friction with minimal risk
+
+❌ **Not appropriate:**
+- Any production application
+- APIs with financial consequences if the key is leaked (paid AI APIs, payment processors, etc.)
+- Projects where user data security is involved
+- Shareable pens where determined viewers can inspect the source
+
+## The right solution for production
+
+Proper API key management requires a server:
+
+```
+┌─────────────┐      ┌─────────────────────────────────┐
+│  Browser    │─────▶│  Your Server (API key is here)  │─────▶  External API
+└─────────────┘      └─────────────────────────────────┘
+  No key here           Key in environment variable
+```
+
+**Server-side best practices:**
+- Store keys in environment variables, never in code
+- Create a backend proxy endpoint that makes API calls on behalf of clients
+- Add rate limiting to your proxy endpoint
+- Rotate keys regularly
+- Set IP allowlists on your API key if the provider supports it
+- Monitor usage for anomalies
+
+## Responsible disclosure
+
+If you discover a vulnerability in SaltyKeys.js itself (e.g. the decode logic can be trivially bypassed in a way not already documented here), please report it via [GitHub's private vulnerability reporting](https://github.com/peterbenoit/SaltyKeys.js/security/advisories/new) rather than opening a public issue.
+
+Note that "client-side code can be inspected in devtools" is not a vulnerability — it is the fundamental nature of JavaScript in a browser.

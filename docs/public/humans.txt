@@ -1,0 +1,16 @@
+/* TEAM */
+Developer: Peter Benoit
+Site: https://uiguy.dev
+Location: United States
+
+/* THANKS */
+Astro: https://astro.build
+Starlight: https://starlight.astro.build
+CodePen: https://codepen.io
+
+/* SITE */
+Last update: 2026/03/07
+Language: English
+Standards: HTML5, CSS3
+Components: Astro, Starlight
+Hosted on: Vercel

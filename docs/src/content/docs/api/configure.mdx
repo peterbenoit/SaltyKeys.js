@@ -1,0 +1,90 @@
+---
+title: configure()
+description: Configure SaltyKeys.js with custom URL patterns, caching settings, and environment identifiers.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## Signature
+
+```ts
+SaltyKeys.configure(options?: Partial<SaltyKeysConfig>): void
+```
+
+## Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `options` | `object` | An object containing one or more configuration keys to override. |
+
+### Configuration options
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `urlPattern` | `RegExp` | CodePen pattern (see below) | A regex with **one capture group** that extracts the project/pen identifier from the page URL. |
+| `cacheEnabled` | `boolean` | `true` | When `true`, the extracted pen ID is cached after the first call to `getPenId()` and reused on subsequent calls. |
+| `environment` | `string` | `'codepen'` | An arbitrary string identifier for the current environment. Currently informational only. |
+
+**Default `urlPattern`:**
+
+```js
+/codepen\.io\/[^/]+\/(?:pen|debug|fullpage|fullembedgrid)\/([^?#]+)/
+```
+
+This matches URLs in the forms:
+- `https://codepen.io/username/pen/AbCdEf`
+- `https://codepen.io/username/debug/AbCdEf`
+- `https://cdpn.io/username/fullpage/AbCdEf`
+
+## Returns
+
+`void` — `configure()` mutates `SaltyKeys.config` in place.
+
+## Examples
+
+### Default configuration (no call needed)
+
+```js
+// These are the defaults — no need to call configure() unless you're changing them.
+SaltyKeys.config;
+// → { urlPattern: /codepen.../, cacheEnabled: true, environment: 'codepen' }
+```
+
+### Custom URL pattern for a non-CodePen site
+
+```js
+SaltyKeys.configure({
+  urlPattern: /my-site\.com\/projects\/([^?#]+)/,
+  environment: 'custom',
+});
+```
+
+### Disable caching
+
+Useful in development or testing when the page URL changes frequently:
+
+```js
+SaltyKeys.configure({ cacheEnabled: false });
+```
+
+### Override `getPenId()` directly
+
+For full control, replace the method:
+
+```js
+SaltyKeys.getPenId = function () {
+  // Return a value from your own logic
+  return document.getElementById('my-project-id').textContent.trim();
+};
+```
+
+<Aside type="note">
+  `configure()` performs a shallow merge — you only need to pass the keys you want to override.
+</Aside>
+
+## Reading current config
+
+```js
+console.log(SaltyKeys.config);
+// → { urlPattern: /.../, cacheEnabled: true, environment: 'codepen' }
+```

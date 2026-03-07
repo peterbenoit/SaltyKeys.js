@@ -1,0 +1,96 @@
+---
+title: Quick Start
+description: Generate and use a salted API key in under five minutes.
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+import CodePenButton from '../../../components/CodePenButton.astro';
+
+<Aside type="caution">
+  This guide assumes you are working in a CodePen pen. See [Installation](/getting-started/installation/) for other environments.
+</Aside>
+
+## The two-phase workflow
+
+Using SaltyKeys involves two separate steps:
+
+1. **Offline (key generation)** — Run `generateSaltedKey()` once in the console to produce your salted key
+2. **Online (key retrieval)** — Embed the salted key in your pen and call `getApiKey()` at runtime to decode it
+
+The original API key never sits in your pen's code in plain text.
+
+## Step-by-step
+
+<Steps>
+
+1. **Open your pen** on CodePen and add SaltyKeys.js (see [Installation](/getting-started/installation/)).
+
+2. **Generate your salted key** — open the browser console while viewing your pen and run:
+
+   ```js
+   const saltedKey = SaltyKeys.generateSaltedKey('YOUR_ACTUAL_API_KEY');
+   console.log('Salted key:', saltedKey);
+   ```
+
+   Copy the logged value. This is your **salted key** — it encodes the pen ID, a timestamp, and a nonce.
+
+3. **Store the salted key in your pen** — replace the call above with:
+
+   ```js
+   const saltedKey = 'PASTE_YOUR_SALTED_KEY_HERE';
+   const apiKey = SaltyKeys.getApiKey(saltedKey);
+
+   if (apiKey) {
+     // Use apiKey with your API service
+     initMyService(apiKey);
+   } else {
+     console.warn('Could not retrieve API key — wrong pen or invalid key.');
+   }
+   ```
+
+4. **Test it** — save the pen and reload. `getApiKey()` should return your original key. If you copy the salted key into a different pen, `getApiKey()` will return `null` because the pen ID won't match.
+
+</Steps>
+
+## Complete example
+
+```js
+// Paste SaltyKeys.js here, or load it as a script
+
+// Replace with your salted key (generated in the console of this exact pen)
+const SALTED_KEY = 'your-generated-salted-key';
+
+const apiKey = SaltyKeys.getApiKey(SALTED_KEY);
+
+if (apiKey) {
+  fetch(`https://api.example.com/data?key=${encodeURIComponent(apiKey)}`)
+    .then(res => res.json())
+    .then(data => console.log(data));
+} else {
+  console.error('SaltyKeys: unable to retrieve API key.');
+}
+```
+
+Try it live:
+
+<CodePenButton
+  title="SaltyKeys.js Quick Start"
+  html={`<h1>SaltyKeys.js Quick Start</h1>
+<p>Open the browser console to see the salted key generation in action.</p>`}
+  js={`// Step 1: Paste SaltyKeys.js source here (https://github.com/peterbenoit/SaltyKeys.js/blob/main/SaltyKeys.js)
+
+// Step 2: In the console, run:
+// const salted = SaltyKeys.generateSaltedKey('my-api-key');
+// console.log(salted);
+
+// Step 3: Replace the value below with your salted key
+const SALTED_KEY = 'replace-with-your-salted-key';
+const key = SaltyKeys.getApiKey(SALTED_KEY);
+console.log('Retrieved key:', key);`}
+/>
+
+## What's next?
+
+- Read [How It Works](/concepts/how-it-works/) to understand the obfuscation approach
+- Explore the full [API Reference](/api/configure/) for all methods and options
+- Try the [Interactive Demo](/demo/) in the browser

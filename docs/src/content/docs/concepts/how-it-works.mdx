@@ -1,0 +1,83 @@
+---
+title: How It Works
+description: A technical walkthrough of how SaltyKeys.js obfuscates and verifies API keys.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## Overview
+
+SaltyKeys.js works in two phases:
+
+1. **Key generation** — done once, offline, by you in the browser console
+2. **Key retrieval** — done at runtime in your pen, by anyone who loads it
+
+The core idea is **context-binding**: the salted key is tied to the CodePen pen ID, so it can only be decoded successfully when the pen ID matches.
+
+## Phase 1 — Key generation
+
+When you call `generateSaltedKey('my-api-key')`, SaltyKeys:
+
+1. Calls `getPenId()` to read the current pen's ID from the URL (e.g. `XWbpNvY`)
+2. Builds a compound string:
+   ```
+   "my-api-key:XWbpNvY:1746000000000:a1b2c3d4"
+   ```
+   — where `1746000000000` is the current timestamp and `a1b2c3d4` is a random nonce
+3. Unicode-safe Base64 encodes the compound string (`btoa` + `encodeURIComponent`)
+4. Reverses the resulting string character by character
+
+The output is a string that looks like scrambled Base64. This becomes your salted key.
+
+## Phase 2 — Key retrieval
+
+When your pen's code calls `getApiKey(saltedKey)`, SaltyKeys:
+
+1. Calls `getPenId()` to read the current pen's ID
+2. Reverses the salted key string
+3. Base64 decodes it (`atob` + `decodeURIComponent`)
+4. Splits on `":"` to get `[apiKey, penId, timestamp, nonce]`
+5. Compares the decoded `penId` to the current pen's ID
+6. Returns the `apiKey` only if they match; otherwise returns `null`
+
+## The pen ID check
+
+The pen ID comparison is the mechanism that prevents casual key extraction:
+
+```
+Salted key generated in pen "AbCdEf"
+                          ↓
+Loaded in pen "AbCdEf"   → PEN ID MATCHES  → returns original API key ✓
+Loaded in pen "XyZ123"   → PEN ID MISMATCH → returns null             ✗
+```
+
+If someone copies your salted key and pastes it into a different pen, `getApiKey()` returns `null` and the API key is never exposed.
+
+## URL extraction and the iframe fallback
+
+`getPenId()` uses a two-step strategy:
+
+1. **Direct URL** — tests `window.location.href` against the configured regex
+2. **Canonical link** — if the direct match fails (as happens in embedded iframe views), reads the `href` of `<link rel="canonical">` and tests that instead
+
+CodePen always injects a canonical link tag even inside the iframe, so both the editor view and embedded view work the same way.
+
+## Obfuscation layers
+
+| Layer | Technique | Purpose |
+|-------|-----------|---------|
+| 1 | Compound string with colon delimiters | Embeds pen ID, timestamp, nonce |
+| 2 | Unicode-safe Base64 (`btoa` after `encodeURIComponent`) | Obscures the raw string from casual inspection |
+| 3 | String reversal | Makes the Base64 look non-standard at a glance |
+
+<Aside type="caution" title="This is not encryption">
+  These layers add friction, not security. Base64 is an encoding, not encryption — it is trivial to reverse. A developer looking at the salted key in devtools can decode it manually in seconds. The only real protection is the pen ID check, which limits portability.
+</Aside>
+
+## Caching
+
+After the first successful call to `getPenId()`, the result is stored in a private class field (`#cachedPenId`). Subsequent calls skip the URL/DOM lookup and return the cached value directly. This is controlled by `SaltyKeys.config.cacheEnabled`.
+
+## Unicode safety
+
+The built-in helpers `_safeEncode` and `_safeDecode` wrap `btoa`/`atob` with `encodeURIComponent`/`decodeURIComponent` to handle characters outside the Latin-1 range. API keys and pen IDs are typically ASCII, but the safeguard is there.

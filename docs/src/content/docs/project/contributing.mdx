@@ -1,0 +1,85 @@
+---
+title: Contributing
+description: How to contribute to SaltyKeys.js — filing issues, submitting pull requests, and development setup.
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+Thank you for your interest in contributing to SaltyKeys.js! This project welcomes bug reports, documentation improvements, and pull requests.
+
+## Reporting bugs
+
+Before opening a new issue, please [search existing issues](https://github.com/peterbenoit/SaltyKeys.js/issues) to avoid duplicates.
+
+When reporting a bug, include:
+- The browser and version where the issue occurs
+- The CodePen URL (if applicable)
+- Steps to reproduce the problem
+- Expected vs. actual behaviour
+- Any console errors
+
+[Open a bug report →](https://github.com/peterbenoit/SaltyKeys.js/issues/new)
+
+## Suggesting improvements
+
+Feature requests and documentation improvements are welcome. Open an issue describing what you'd like to see and why it would be useful.
+
+<Aside type="note">
+  SaltyKeys.js is intentionally small and focused. Proposals that add external dependencies or meaningfully increase the file size are unlikely to be accepted.
+</Aside>
+
+## Development setup
+
+SaltyKeys.js itself (`SaltyKeys.js` in the repository root) is a single file with no build step. The `docs/` subdirectory is the Astro + Starlight documentation site.
+
+### Working on the library
+
+The library file is `SaltyKeys.js`. Edit it directly and test manually in a CodePen or browser console. There is currently no automated test suite — if you add one, that's a welcome contribution.
+
+### Working on the docs
+
+<Steps>
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/peterbenoit/SaltyKeys.js.git
+   cd SaltyKeys.js
+   ```
+
+2. **Install docs dependencies**
+
+   ```bash
+   cd docs && npm install
+   ```
+
+3. **Start the dev server**
+
+   ```bash
+   npm run dev
+   # → http://localhost:4321
+   ```
+
+4. **Make your changes** to files in `docs/src/content/docs/`
+
+5. **Verify the build passes**
+
+   ```bash
+   npm run build
+   ```
+
+   The build must complete with zero errors.
+
+</Steps>
+
+## Pull request guidelines
+
+- Keep changes focused — one logical change per PR
+- For documentation: check spelling, test any code samples, verify links work
+- For library changes: describe what the change does and why, and note any behaviour changes
+- Follow the existing code style (tabs, single quotes)
+- Update `CHANGELOG.md` under `[Unreleased]` with a brief description of your change
+
+## Code of Conduct
+
+This project follows the [Contributor Covenant Code of Conduct](https://github.com/peterbenoit/SaltyKeys.js/blob/main/CODE_OF_CONDUCT.md). By participating, you agree to abide by its terms.

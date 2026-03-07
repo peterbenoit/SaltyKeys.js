@@ -1,0 +1,78 @@
+---
+title: Introduction
+description: Learn what SaltyKeys.js is, why it exists, and when to use it.
+---
+
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
+
+<Aside type="caution" title="Educational Use Only">
+  SaltyKeys.js is **not** a security solution. It is an educational tool demonstrating context-binding and obfuscation techniques. For production applications, always use server-side approaches for managing API keys.
+</Aside>
+
+## What is SaltyKeys.js?
+
+SaltyKeys.js is a lightweight JavaScript library designed for developers working on [CodePen](https://codepen.io/) projects that need to use non-sensitive API keys. It provides a client-side approach to **obfuscating and verifying API keys** by binding them to a specific CodePen pen ID, making it harder to casually extract and reuse the key elsewhere.
+
+The library uses a combination of techniques:
+
+- **Context-binding** — the salted key encodes the pen's ID, so it only works when decoded in the same pen
+- **Multi-level obfuscation** — base64 encoding, string reversal, timestamps, and random nonces beyond a simple encode
+- **Caching** — the extracted pen ID is cached to avoid repeated DOM queries
+
+## Why does it exist?
+
+When you embed an API key directly in a CodePen, it's visible to anyone who views the pen's source. SaltyKeys adds a layer of friction: the obfuscated key won't work if someone simply copies it into a different pen or environment, because the pen ID won't match.
+
+This is useful for:
+
+- **Demonstrations and experiments** — when you want to share a pen that calls an API without making the key trivially portable
+- **Educational projects** — teaching about API usage without exposing production credentials
+- **Quick prototypes** — where API key security is not a primary concern
+
+## When NOT to use SaltyKeys.js
+
+<Aside type="danger" title="Do not use in production">
+  Client-side obfuscation is **not encryption**. A determined attacker with browser devtools can always extract the key. Never use this for sensitive or paid API services.
+</Aside>
+
+Do not use SaltyKeys.js for:
+
+- Production applications
+- Projects handling sensitive or paid API services
+- Applications where security is a requirement
+- As a replacement for proper server-side API key management
+
+## How proper API key management looks
+
+For real applications, keep API keys on the server:
+
+```
+┌─────────────┐      ┌─────────────┐      ┌───────────────┐
+│             │      │             │      │               │
+│  Client     │──────│  API Proxy  │──────│  External API │
+│  Browser    │      │  Server     │      │  Service      │
+│             │      │             │      │               │
+└─────────────┘      └─────────────┘      └───────────────┘
+     No keys           Secure key
+                       management
+```
+
+Use environment variables on your server, never in client-side code. Implement rate limiting and rotate keys regularly.
+
+## Browser compatibility
+
+SaltyKeys.js uses modern JavaScript features with no transpilation step.
+
+| Browser | Minimum Version |
+|---------|----------------|
+| Chrome  | 92+            |
+| Firefox | 90+            |
+| Safari  | 15+            |
+| Edge    | 92+            |
+
+Required browser APIs:
+- `window.location`
+- `document.querySelector()`
+- `btoa()` / `atob()` for Base64 encoding
+- ES2022 private class fields (`#field`)
+- Regular expressions

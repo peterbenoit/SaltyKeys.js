@@ -1,0 +1,44 @@
+---
+title: SaltyKeys.js
+description: A JavaScript library for obfuscating and verifying API keys in CodePen projects and educational environments.
+template: splash
+hero:
+  tagline: Client-side API key obfuscation for CodePen projects and educational tools.
+  actions:
+    - text: Get Started
+      link: /getting-started/introduction/
+      icon: right-arrow
+    - text: Quick Start
+      link: /getting-started/quick-start/
+      icon: rocket
+      variant: minimal
+    - text: Interactive Demo
+      link: /demo/
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid, Aside } from '@astrojs/starlight/components';
+
+<Aside type="caution" title="Educational Use Only">
+  SaltyKeys.js is **not** a security solution. It's an educational tool demonstrating context-binding and obfuscation techniques. For production applications, always use server-side approaches for managing API keys.
+</Aside>
+
+## What is SaltyKeys.js?
+
+SaltyKeys.js is a specialized JavaScript library designed to help developers working with CodePen projects that need to use non-sensitive API keys. It provides a client-side approach to **obfuscating and verifying API keys**, binding them to a specific CodePen context to help prevent casual extraction.
+
+<CardGrid stagger>
+  <Card title="Context-Aware" icon="approve-check-circle">
+    Keys are bound to specific CodePen IDs, making them usable only in the originating environment — preventing simple copy-paste extraction.
+  </Card>
+  <Card title="Multi-Level Obfuscation" icon="puzzle">
+    Uses encoding techniques, timestamps, and random nonces to obscure API keys beyond simple base64 encoding.
+  </Card>
+  <Card title="Configurable" icon="setting">
+    Supports custom URL patterns and environment settings for use beyond CodePen.
+  </Card>
+  <Card title="Zero Dependencies" icon="rocket">
+    Self-contained. Uses only native browser APIs — no external libraries required.
+  </Card>
+</CardGrid>

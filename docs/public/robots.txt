@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://peterbenoit.github.io/SaltyKeys.js/sitemap-index.xml

@@ -1,0 +1,76 @@
+---
+title: generateSaltedKey()
+description: Generate an obfuscated API key bound to the current CodePen pen ID.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## Signature
+
+```ts
+SaltyKeys.generateSaltedKey(apiKey: string): string | null
+```
+
+## Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `apiKey` | `string` | Your original, plain-text API key. Must be a non-empty string. |
+
+## Returns
+
+| Value | Meaning |
+|-------|---------|
+| `string` | The obfuscated salted key. Store this in your pen code. |
+| `null` | Generation failed — either `apiKey` was invalid, the pen ID could not be extracted, or an encoding error occurred. |
+
+## How the salted key is constructed
+
+```
+ORIGINAL_KEY + ":" + PEN_ID + ":" + TIMESTAMP + ":" + NONCE
+   → base64 encoded
+   → reversed character-by-character
+   = salted key
+```
+
+Each component adds an obfuscation layer:
+
+| Component | Purpose |
+|-----------|---------|
+| `ORIGINAL_KEY` | The value you want to protect |
+| `PEN_ID` | Binds the key to this exact pen |
+| `TIMESTAMP` | Makes each generated key unique in time |
+| `NONCE` | Random string adding unpredictability |
+
+<Aside type="caution">
+  The timestamp and nonce make each call to `generateSaltedKey()` produce a **different** output, even for the same input. Only the most recently generated salted key is valid in a given pen at a given time — but because `getApiKey()` only checks the pen ID, any salted key from the same pen will decode successfully. The timestamp and nonce are not verified on decode; they are purely for obfuscation.
+</Aside>
+
+## Example
+
+**Step 1** — Open your pen in CodePen and paste SaltyKeys.js. Then, in the browser console, run:
+
+```js
+const salted = SaltyKeys.generateSaltedKey('MY_API_KEY_12345');
+console.log(salted);
+// → something like: "=kJHGFcba...reversed base64 string..."
+```
+
+**Step 2** — Copy the logged value and embed it in your pen's JS:
+
+```js
+const SALTED = 'PASTE_SALTED_KEY_HERE';
+const key = SaltyKeys.getApiKey(SALTED);
+```
+
+<Aside type="note">
+  **Run generation in the console, not on the page.** If you call `generateSaltedKey()` in your pen's JavaScript, the original API key will be visible in the source. Run it once from the console, copy the result, and remove the generation call.
+</Aside>
+
+## Error cases
+
+| Situation | Return value | Console warning |
+|-----------|-------------|-----------------|
+| `apiKey` is empty or not a string | `null` | `"API key must be a non-empty string."` |
+| Pen ID could not be extracted | `null` | `"Unable to extract Pen ID."` |
+| Encoding failed internally | `null` | `"Failed to generate salted key: ..."` |
