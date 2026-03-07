@@ -231,7 +231,12 @@ class SaltyKeys {
 				return null;
 			}
 
-			const [apiKey, idFromKey] = keyParts;
+			// The last 3 segments are always nonce, timestamp, penId.
+			// Everything before them is the original apiKey (which may contain colons).
+			const nonce = keyParts.pop();      // eslint-disable-line no-unused-vars
+			const timestamp = keyParts.pop();  // eslint-disable-line no-unused-vars
+			const idFromKey = keyParts.pop();
+			const apiKey = keyParts.join(':');
 
 			if (idFromKey === penId) {
 				return apiKey;

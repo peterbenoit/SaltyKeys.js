@@ -763,6 +763,143 @@ Run basic accessibility checks:
 
 ---
 
+## Testing the JavaScript library
+
+If the project you're migrating includes a JavaScript library (a `.js` file that users
+include in their projects), write a test suite for it **before** you consider the
+migration complete. Documentation without tests leaves the library fragile — easy to
+break silently when the code is updated later.
+
+### When to write tests
+
+Write tests if any of the following are true:
+
+- The library exposes a public API (methods, classes, or functions)
+- The library has configurable behaviour that varies the output
+- The library interacts with browser globals (`window`, `document`, `btoa`, etc.)
+- The library will be linked to from the docs as something users depend on
+
+If the library is trivially simple (a single utility function with no branching), a
+manually verified smoke test in the browser console may be sufficient. Everything else
+warrants an automated suite.
+
+### Recommended approach — Node.js built-in test runner
+
+For a single-file vanilla JS library with no build step, the lightest option is the
+Node.js built-in test runner (available from Node 18+). No additional dependencies
+are required.
+
+```
+your-project/
+├── your-lib.js        ← the library
+└── test/
+    └── your-lib.test.js
+```
+
+**Test file structure (`test/your-lib.test.js`):**
+
+```js
+import { test, describe } from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+
+// Polyfill browser globals the library needs
+globalThis.window = {
+  location: { href: 'https://codepen.io/user/pen/AbCdEf', hostname: 'codepen.io' },
+};
+globalThis.document = {
+  querySelector: () => null,
+  createElement: () => ({ style: {}, setAttribute() {}, appendChild() {}, prepend() {}, remove() {} }),
+  body: { prepend() {} },
+  readyState: 'complete',
+  addEventListener: () => {},
+};
+globalThis.btoa = (s) => Buffer.from(s, 'binary').toString('base64');
+globalThis.atob = (s) => Buffer.from(s, 'base64').toString('binary');
+
+// Load the library via eval so it runs in this module's scope
+const libSrc = readFileSync(new URL('../your-lib.js', import.meta.url), 'utf8');
+eval(libSrc);
+
+describe('YourLib', () => {
+  test('returns expected value for known input', () => {
+    const result = YourLib.someMethod('input');
+    assert.equal(result, 'expected output');
+  });
+
+  test('returns null for invalid input', () => {
+    assert.equal(YourLib.someMethod(''), null);
+    assert.equal(YourLib.someMethod(null), null);
+  });
+});
+```
+
+Add a `test` script to your root `package.json`:
+
+```json
+{
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
+}
+```
+
+Run with:
+
+```bash
+npm test
+```
+
+### What to test
+
+Cover these categories, in priority order:
+
+| Category | Examples |
+|----------|---------|
+| **Happy path** | Valid inputs produce the expected output |
+| **Invalid inputs** | Empty string, null, wrong type → returns null or throws with a clear message |
+| **Round-trip** | If the library has encode/decode or generate/retrieve pairs, verify they reverse correctly |
+| **Context-dependent behaviour** | Results that change based on URL, environment, or configuration |
+| **Error paths** | Bad config, missing DOM element, corrupted data |
+
+### Polyfilling browser globals for Node.js
+
+Libraries that use `window`, `document`, `btoa`/`atob`, or `localStorage` need those
+globals stubbed before the library source is eval'd. Keep stubs minimal — only implement
+what the library actually calls.
+
+Common stubs:
+
+```js
+// window.location
+globalThis.window = {
+  location: { href: 'https://your-site.com/projects/my-id', hostname: 'your-site.com' },
+};
+
+// document.querySelector (returning null simulates "element not found")
+globalThis.document = { querySelector: () => null };
+
+// Base64 (Node.js Buffer-based — identical byte-level behaviour to browser btoa/atob)
+globalThis.btoa = (s) => Buffer.from(s, 'binary').toString('base64');
+globalThis.atob = (s) => Buffer.from(s, 'base64').toString('binary');
+```
+
+To test different environments, reassign `globalThis.window.location.href` between
+tests (or between `describe` blocks) before each operation under test.
+
+### Adding tests to the CI / pre-deployment checklist
+
+Once tests exist, run them as part of every build:
+
+```bash
+npm test          # library tests
+cd docs && npm run build  # docs build
+```
+
+Add `npm test` to `CONTRIBUTING.md` so contributors know to run it before opening a PR.
+
+---
+
 ## Running the docs locally
 
 ```bash
