@@ -60,7 +60,7 @@ If someone copies your salted key and pastes it into a different pen, `getApiKey
 1. **Direct URL** — tests `window.location.href` against the configured regex
 2. **Canonical link** — if the direct match fails (as happens in embedded iframe views), reads the `href` of `<link rel="canonical">` and tests that instead
 
-CodePen always injects a canonical link tag even inside the iframe, so both the editor view and embedded view work the same way.
+CodePen serves content from two domains: `codepen.io` (editor and full-page views) and `cdpn.io` (short URLs and embeds). The default `urlPattern` covers both.
 
 ## Obfuscation layers
 

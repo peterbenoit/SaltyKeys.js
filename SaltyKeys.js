@@ -14,7 +14,7 @@
  */
 class SaltyKeys {
 	static config = {
-		urlPattern: /codepen\.io\/[^/]+\/(?:pen|debug|fullpage|fullembedgrid)\/([^?#]+)/,
+		urlPattern: /(?:codepen|cdpn)\.io\/[^/]+\/(?:pen|debug|fullpage|fullembedgrid)\/([^?#]+)/,
 		cacheEnabled: true,
 		environment: 'codepen'
 	};
@@ -24,6 +24,61 @@ class SaltyKeys {
 	}
 
 	static #cachedPenId = null;
+	static #warnShown = new Set();
+
+	/**
+	 * Renders a dismissable in-page warning banner.
+	 * Each unique key is shown at most once per page load.
+	 *
+	 * @param {string} key   - Deduplication key.
+	 * @param {string} message - Plain-text message to display.
+	 */
+	static _showWarning(key, message) {
+		if (this.#warnShown.has(key)) return;
+		this.#warnShown.add(key);
+
+		console.warn('SaltyKeys.js:', message);
+
+		if (typeof document === 'undefined') return;
+
+		const banner = document.createElement('div');
+		banner.setAttribute('role', 'alert');
+		banner.style.cssText = [
+			'position:fixed', 'top:0', 'left:0', 'right:0',
+			'z-index:2147483647',
+			'background:#7c3a00', 'color:#fff',
+			'font:14px/1.5 system-ui,sans-serif',
+			'padding:10px 16px',
+			'display:flex', 'align-items:flex-start', 'gap:12px',
+			'box-shadow:0 2px 8px rgba(0,0,0,.4)',
+		].join(';');
+
+		const label = document.createElement('strong');
+		label.textContent = 'SaltyKeys.js: ';
+
+		const text = document.createElement('span');
+		text.style.flex = '1';
+		text.appendChild(label);
+		text.appendChild(document.createTextNode(message));
+
+		const close = document.createElement('button');
+		close.textContent = '\u2715';
+		close.setAttribute('aria-label', 'Dismiss');
+		close.style.cssText = [
+			'background:none', 'border:none', 'color:inherit',
+			'cursor:pointer', 'font-size:16px', 'line-height:1',
+			'padding:0', 'flex-shrink:0',
+		].join(';');
+		close.onclick = () => banner.remove();
+
+		banner.appendChild(text);
+		banner.appendChild(close);
+
+		const inject = () => document.body && document.body.prepend(banner);
+		document.readyState === 'loading'
+			? document.addEventListener('DOMContentLoaded', inject)
+			: inject();
+	}
 
 	/**
 	 * Extracts the CodePen Pen ID from the current URL or canonical link.
@@ -31,6 +86,10 @@ class SaltyKeys {
 	 * The method first attempts to get the Pen ID directly from the URL. If it fails
 	 * (e.g., when the Pen is embedded in an iframe), it falls back to searching for
 	 * the canonical link tag in the HTML.
+	 *
+	 * When no ID can be found and the environment is set to 'codepen', a visible
+	 * in-page warning is shown distinguishing between an unsaved pen (no ID yet)
+	 * and a page that is not on codepen.io at all.
 	 *
 	 * @returns {string|null} The Pen ID if found, otherwise null.
 	 */
@@ -51,6 +110,21 @@ class SaltyKeys {
 				if (CODEPEN_ID.test(href)) {
 					id = CODEPEN_ID.exec(href)[1];
 				}
+			}
+		}
+
+		if (!id && this.config.environment === 'codepen') {
+			const onCodePen = /(?:codepen|cdpn)\.io/.test(window.location.hostname);
+			if (onCodePen) {
+				this._showWarning(
+					'no-pen-id',
+					'This pen does not have a saved ID yet. Save the pen on CodePen first, then run generateSaltedKey() again from the console to bind the key to this pen\'s ID.'
+				);
+			} else {
+				this._showWarning(
+					'not-codepen',
+					'SaltyKeys is configured for CodePen but this page is not on codepen.io or cdpn.io. Use SaltyKeys.configure({ urlPattern: /your-pattern/ }) or override SaltyKeys.getPenId() for your environment.'
+				);
 			}
 		}
 

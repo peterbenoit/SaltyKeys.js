@@ -28,13 +28,13 @@ SaltyKeys.configure(options?: Partial<SaltyKeysConfig>): void
 **Default `urlPattern`:**
 
 ```js
-/codepen\.io\/[^/]+\/(?:pen|debug|fullpage|fullembedgrid)\/([^?#]+)/
+/(?:codepen|cdpn)\.io\/[^/]+\/(?:pen|debug|fullpage|fullembedgrid)\/([^?#]+)/
 ```
 
 This matches URLs in the forms:
 - `https://codepen.io/username/pen/AbCdEf`
 - `https://codepen.io/username/debug/AbCdEf`
-- `https://cdpn.io/username/fullpage/AbCdEf`
+- `https://cdpn.io/username/fullpage/AbCdEf` (CodePen's short domain, also used for embeds)
 
 ## Returns
 

@@ -64,6 +64,19 @@ const id = SaltyKeys.getPenId();
 SaltyKeys.configure({ cacheEnabled: true });
 ```
 
+## User-facing warnings
+
+When `getPenId()` cannot find an ID **and** `environment` is `'codepen'` (the default), a dismissable in-page banner is shown at the top of the page. The message differs by situation:
+
+| Situation | Banner message |
+|-----------|----------------|
+| On `codepen.io` but pen has no saved ID (e.g. new/unsaved pen at `/pen?editors=1010`) | Save the pen first, then regenerate the salted key |
+| Not on `codepen.io` at all | Configure a custom `urlPattern` or override `getPenId()` |
+
+The warning also logs to `console.warn`. Each unique warning is shown **at most once per page load** regardless of how many times `getPenId()` is called.
+
+No banner is shown when a custom `environment` is set, since the caller has already opted out of the default CodePen assumptions.
+
 ## Notes
 
 - The extracted value is the first regex capture group from `urlPattern`. Make sure your custom pattern has **exactly one capture group**.
