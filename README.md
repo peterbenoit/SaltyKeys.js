@@ -258,9 +258,25 @@ For production applications requiring API key security:
                       management
 ```
 
+## Footer
+
+The documentation site includes a global footer:
+
+```html
+<footer class="text-center mt-20 pb-10 border-t border-gray-100 pt-10 text-gray-400 text-sm">
+    <p>Built by <a href="https://peterbenoit.com"
+            class="text-gray-600 hover:text-gray-900 font-medium transition-colors">Peter Benoit</a>. &copy;
+        2026.</p>
+</footer>
+```
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
+
+Created by [Peter Benoit](https://peterbenoit.com)
 
 ---
 
