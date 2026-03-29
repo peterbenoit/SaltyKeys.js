@@ -46,6 +46,9 @@ export default defineConfig({
 				{ tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
 				{ tag: 'meta', attrs: { name: 'twitter:creator', content: '@peterbenoit' } },
 				{ tag: 'meta', attrs: { name: 'twitter:image', content: 'https://peterbenoit.github.io/SaltyKeys.js/og-image.jpg' } },
+				// Google Analytics
+				{ tag: 'script', attrs: { src: 'https://www.googletagmanager.com/gtag/js?id=G-GQEC09BG5Z', async: true } },
+				{ tag: 'script', content: "window.dataLayer = window.dataLayer || []; function gtag() { dataLayer.push(arguments); } gtag('js', new Date()); gtag('config', 'G-GQEC09BG5Z');" },
 			],
 			editLink: {
 				baseUrl: 'https://github.com/peterbenoit/SaltyKeys.js/edit/main/docs/',
